@@ -109,13 +109,12 @@ def fn_information(fptr):
     return fptr.getParamString(IFptr.LIBFPTR_PARAM_SERIAL_NUMBER)
 
 
-def technological_reset(fptr):
+def technoligical_reset(fptr):
     fptr.resetSettings()
 
 
 def reboot_device(fptr):
     fptr.deviceReboot()
-
 
 def calc_rnm(full_serial_number, inn_12, rnm_number):
     def crc16_ccitt(buf):
