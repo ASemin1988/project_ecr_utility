@@ -67,16 +67,14 @@ if args.fiscal:
 
         # Если на ККТ платформа 2.5, то выполняется кож ниже
         if re.findall(r'3', configuration_version):
-            get_text = input('Переставьте джампер и нажмите ENTER для продолжения: ')
-            print(get_text)
+            input('Переставьте джампер или переключатель boot в ON и нажмите ENTER для продолжения: ')
             if dto_helper.technological_reset(driver):
                 print(f'Технологическое обнуление: {dto_helper.error_description ( driver )}')
-                raise dto_helper.error_description(driver)
-            get_text_reboot = input('Переставьте джампер обратно и нажмите ENTER для продолжения: ')
-            print(get_text_reboot)
+                raise Exception
+            input('Переставьте джампер или переключатель boot в ON и нажмите ENTER для продолжения: ')
             if dto_helper.reboot_device(driver):
                 print(f'Перезагрузка ККТ: {dto_helper.error_description ( driver )}')
-                raise dto_helper.error_description(driver)
+                raise Exception
         # Если на ККТ платформа 5, то выполянется код ниже
         elif dto_helper.technological_reset(driver):
             print(f'Технологическое обнуление: {dto_helper.error_description(driver)}')
@@ -84,7 +82,10 @@ if args.fiscal:
         else:
             exit(f"Ошибка выполнения: {dto_helper.error_description(driver)}")
         print(f'Перезагрузка ККТ: {dto_helper.error_description(driver)}')
+
+
     print('ФН готов к аткивации')
+    # Процесс фискализации ФН
     inn = input("Введите ИНН клиента\t: ")
     rnm = ""
 try:
