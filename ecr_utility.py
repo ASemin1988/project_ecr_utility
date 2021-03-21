@@ -3,6 +3,7 @@ import json
 import argparse
 import dto_helper
 import time
+import re
 
 
 
@@ -15,15 +16,16 @@ if dto_helper.connect_to_kkt_by_usb(driver) != driver.LIBFPTR_OK:
     exit("Не удалось установить связь с ККТ!")
 
 serial_number = dto_helper.get_serial_number(driver)
-print("Заводской номер ККТ : {serial_number}".format(serial_number=serial_number))
+print(f"Заводской номер ККТ : {serial_number}".format(serial_number=serial_number))
 
-configurationVersion = dto_helper.get_configuration(driver)
-print("Прошивка : {configurationVersion}".format(configurationVersion=configurationVersion))
+configuration_version = dto_helper.get_configuration(driver)
+print(f"Прошивка : {configuration_version}".format(configuration_version=configuration_version))
 
 serial_fn = dto_helper.fn_information(driver)
-print("Серийный номер ФН: {serial_fn}".format(serial_fn=serial_fn))
+print(f"Серийный номер ФН: {serial_fn}".format(serial_fn=serial_fn))
 
 print("-" * 75)
+
 
 # Добавил аргументы для запуска
 parser = argparse.ArgumentParser ()
@@ -36,7 +38,7 @@ if args.info:
     printInformation = dto_helper.print_information_kkt(driver)
 
 if args.reset:
-    if dto_helper.technoligical_reset(driver) != driver.LIBFPTR_OK:
+    if dto_helper.technological_reset(driver) != driver.LIBFPTR_OK:
         print(dto_helper.error_description(driver))
 
 
@@ -47,47 +49,56 @@ if args.fiscal:
     # Получаем статус ФН готов к активации
     configured_fn = dto_helper.IFptr.LIBFPTR_UT_CONFIGURATION
 
-    # Получаем статус ФН фискализирован
-    # mode_fn = dto_helper.IFptr.LIBFPTR_FNS_FISCAL_MODE
-    # Процесс проверки ФН, очистка и дальнейшая фискализация
 
     if state_fn != configured_fn:
         print("ФН фискализирован")
         # Очистка ФН
+        print(f'Производим очистку ФН, подождите...')
         dto_helper.fn_clear(driver)
-        print(f'Завершена очистка ФН: {dto_helper.error_description(driver)}')
-        time.sleep(10)
-        # Технологиечское обнуление ККТ
-        if configurationVersion == '3':
-            permission_reset = input('Переставьте джампер и нажмите enter: ')
-            dto_helper.technoligical_reset(driver)
+        x = 0
+        while dto_helper.connect_to_kkt_by_usb(driver) != driver.LIBFPTR_OK and x != 120:
+            time.sleep(5)
+            x += 1
+            print(f'Подклчюение к ККТ(попытка {x})')
+        if x == 120:
+            print(f'Ошибка очистки')
+        print(f'Завершение очистики ФН: {dto_helper.error_description(driver)}')
+
+
+        # Если на ККТ платформа 2.5, то выполняется кож ниже
+        if re.findall(r'3', configuration_version):
+            get_text = input('Переставьте джампер и нажмите ENTER для продолжения: ')
+            print(get_text)
+            if dto_helper.technological_reset(driver):
+                print(f'Технологическое обнуление: {dto_helper.error_description ( driver )}')
+                raise dto_helper.error_description(driver)
+            get_text_reboot = input('Переставьте джампер обратно и нажмите ENTER для продолжения: ')
+            print(get_text_reboot)
+            if dto_helper.reboot_device(driver):
+                print(f'Перезагрузка ККТ: {dto_helper.error_description ( driver )}')
+                raise dto_helper.error_description(driver)
+        # Если на ККТ платформа 5, то выполянется код ниже
+        elif dto_helper.technological_reset(driver):
             print(f'Технологическое обнуление: {dto_helper.error_description(driver)}')
             dto_helper.reboot_device(driver)
-            print(f'Перезагрузка ККТ: {dto_helper.error_description(driver)}')
-        elif configurationVersion == '5':
-            dto_helper.technoligical_reset(driver)
-            print(f'Технологическое обнуление: {dto_helper.error_description(driver)}')
-            dto_helper.reboot_device(driver)
-            print(f'Перезагрузка ККТ: {dto_helper.error_description(driver)}')
         else:
-            exit(f'{dto_helper.error_description(driver)}')
+            exit(f"Ошибка выполнения: {dto_helper.error_description(driver)}")
+        print(f'Перезагрузка ККТ: {dto_helper.error_description(driver)}')
+    print('ФН готов к аткивации')
+    inn = input("Введите ИНН клиента\t: ")
+    rnm = ""
+try:
+    rnm = dto_helper.calc_rnm(full_serial_number=serial_number, inn_12=inn, rnm_number="1").ljust(20)
+except:
+    exit("\tОшибка при вычислении РНМ!")
+print("Регистрационный номер\t: {rnm}".format(rnm=rnm))
 
-    else:
-        print('ФН готов к аткивации')
-        inn = input("Введите ИНН клиента\t: ")
-        rnm = ""
-    try:
-        rnm = dto_helper.calc_rnm(full_serial_number=serial_number, inn_12=inn, rnm_number="1").ljust(20)
-    except:
-        exit("\tОшибка при вычислении РНМ!")
-    print("Регистрационный номер\t: {rnm}".format(rnm=rnm))
+dto_helper.JSON_FISCALISATION_DICT["organization"]["vatin"] = inn
+dto_helper.JSON_FISCALISATION_DICT["device"]["registrationNumber"] = rnm
 
-    dto_helper.JSON_FISCALISATION_DICT["organization"]["vatin"] = inn
-    dto_helper.JSON_FISCALISATION_DICT["device"]["registrationNumber"] = rnm
-
-    print("Производим фискализацию")
-    if dto_helper.process_json(driver,
-                            json.dumps(dto_helper.JSON_FISCALISATION_DICT)) != driver.LIBFPTR_OK:
-        print("\tОшибка: [{error}]".format(error=driver.errorDescription()))
-        exit("Не удалось фискализировать ККТ!")
-    print("ККТ успешно фискализирована")
+print("Производим фискализацию")
+if dto_helper.process_json(driver,
+                        json.dumps(dto_helper.JSON_FISCALISATION_DICT)) != driver.LIBFPTR_OK:
+    print("\tОшибка: [{error}]".format(error=driver.errorDescription()))
+    exit("Не удалось фискализировать ККТ!")
+print("ККТ успешно фискализирована")
