@@ -1,7 +1,6 @@
 from libfptr10 import IFptr
 
 
-
 JSON_FISCALISATION_DICT = {
     "type": "registration",
     "operator": {
@@ -51,12 +50,44 @@ def create_driver():
     return IFptr('')
 
 
+def configuration_version_v2_5(fptr):
+    version_platform_v2_5 = list(get_configuration(fptr))
+    platform_v2_5 = ''.join(version_platform_v2_5[4:])
+    return platform_v2_5
+
+def configuration_version_v5(fptr):
+    version_platform_v5 = list(get_configuration(fptr))
+    platform_v5 = ''.join(version_platform_v5[0:3])
+    return platform_v5
+
+
 def error_description(fptr):
     return fptr.errorDescription()
 
 
 def error_code(fptr):
     return fptr.errorCode()
+
+# Функция проверки лицензии в ККТ
+def read_licenses(fptr):
+    # Вспомогательная функция чтения следующей записи
+    def readNextRecord(recordsID):
+        fptr.setParam(IFptr.LIBFPTR_PARAM_RECORDS_ID, recordsID)
+        return fptr.readNextRecord()
+
+    fptr.setParam(IFptr.LIBFPTR_PARAM_RECORDS_TYPE, IFptr.LIBFPTR_RT_LICENSES)
+    fptr.beginReadRecords()
+    recordsID = fptr.getParamString(IFptr.LIBFPTR_PARAM_RECORDS_ID)
+    id_licenses = []
+    while readNextRecord(recordsID) == IFptr.LIBFPTR_OK:
+        id = fptr.getParamInt(IFptr.LIBFPTR_PARAM_LICENSE_NUMBER)
+        name = fptr.getParamString(IFptr.LIBFPTR_PARAM_LICENSE_NAME)
+        dateFrom = fptr.getParamDateTime(IFptr.LIBFPTR_PARAM_LICENSE_VALID_FROM)
+        dateUntil = fptr.getParamDateTime(IFptr.LIBFPTR_PARAM_LICENSE_VALID_UNTIL)
+        id_licenses.append(name)
+    fptr.setParam(IFptr.LIBFPTR_PARAM_RECORDS_ID, recordsID)
+    fptr.endReadRecords()
+    return id_licenses
 
 
 def connect_to_kkt_by_usb(fptr):
