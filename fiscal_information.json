@@ -1,0 +1,43 @@
+{
+  "type": "registration",
+  "operator": {
+    "name": "Кассир",
+    "vatin": "123654789507"
+  },
+  "organization": {
+    "name": "ПАО \"Москва Тест\"",
+    "vatin": "",
+    "email": "test@atol.ru",
+    "taxationTypes": [
+      "osn"
+    ],
+    "address": "г. Москва ул. Бронницкая 112"
+  },
+  "reason": "fnChange",
+  "changeInfoReasons": [],
+  "device": {
+    "paymentsAddress": "Торговый зал",
+    "ffdVersion": "1.05",
+    "fnsUrl": "www.fns.ru",
+    "registrationNumber": "",
+    "internet": false,
+    "offlineMode": false,
+    "machineInstallation": false,
+    "bso": false,
+    "encryption": false,
+    "autoMode": false,
+    "machineNumber": "",
+    "service": false,
+    "gambling": false,
+    "lottery": false,
+    "excise": false,
+    "defaultTaxationType": "osn",
+    "ofdChannel": "proto"
+  },
+  "ofd": {
+    "name": "ООО Такском",
+    "vatin": "7704211201",
+    "host": "kkm-server-test.1-ofd.ru",
+    "port": 7777
+  }
+}
