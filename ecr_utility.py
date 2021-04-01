@@ -22,19 +22,16 @@ parser.add_argument("--initialization", "-in", help="- Инициализаци�
 args = parser.parse_args()
 
 # Печать информации
-if args.info:
-    if driver.print_information_kkt():
-        print(f'Ошибка печати информации о ККТ: {kkt.error}')
+if args.info and driver.print_information_kkt():
+    print(f'Ошибка печати информации о ККТ: {kkt.error}')
 
 # Перезагрузка кассы
-if args.reboot:
-    if driver.reboot_device() != IFptr.LIBFPTR_OK:
-        print(f'Перезагрузка ККТ: {kkt.error}')
+if args.reboot and driver.reboot_device() != IFptr.LIBFPTR_OK:
+    print(f'Перезагрузка ККТ: {kkt.error}')
 
 # Технологическое обнуление кассы
-if args.technical:
-    if driver.technological_reset() != IFptr.LIBFPTR_OK:
-        print(f'Ошибка технологического обнуления: {kkt.error}')
+if args.technical and driver.technological_reset() != IFptr.LIBFPTR_OK:
+    print(f'Ошибка технологического обнуления: {kkt.error}')
 
 
 if args.initialization:

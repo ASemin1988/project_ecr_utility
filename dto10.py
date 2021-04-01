@@ -1,5 +1,5 @@
 from libfptr10 import IFptr
-
+import config
 
 class DTO10:
 
@@ -9,13 +9,7 @@ class DTO10:
 
 
     def create_driver(self):
-        self.fptr = IFptr('./fptr10.dll')
-
-
-
-    def check_platform_version(self):
-        platform = self.get_configuration()
-        return platform
+        self.fptr = IFptr(config.path_dict_lib)
 
 
     def error_description(self):
@@ -87,7 +81,7 @@ class DTO10:
         self.fptr.report()
 
 
-    def fn_fiscal_state(self):
+    def check_fn_fiscal_state(self):
         self.fptr.setParam(IFptr.LIBFPTR_PARAM_FN_DATA_TYPE, IFptr.LIBFPTR_FNDT_FN_INFO)
         self.fptr.fnQueryData()
         return self.fptr.getParamInt(IFptr.LIBFPTR_PARAM_FN_STATE)
@@ -97,7 +91,7 @@ class DTO10:
         self.fptr.initMgm()
 
 
-    def fn_information(self):
+    def check_fn_information(self):
         self.fptr.setParam(IFptr.LIBFPTR_PARAM_FN_DATA_TYPE, IFptr.LIBFPTR_FNDT_FN_INFO)
         self.fptr.setParam(IFptr.LIBFPTR_FNDT_FN_INFO, IFptr.LIBFPTR_PARAM_SERIAL_NUMBER)
         self.fptr.fnQueryData()
