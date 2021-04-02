@@ -1,4 +1,3 @@
-import json
 
 
 LINE_KKT_INFORM = "-" * 30
@@ -7,4 +6,5 @@ LINES = "-" * 78
 CONNECT_WAIT = 2
 CONNECT_TRIES = 0
 MAX_CONNECT_TRIES = 120
+TIME_SLEEP = 3
 

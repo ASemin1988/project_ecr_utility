@@ -1,6 +1,9 @@
 import constants
 import time
 import json
+import json_work
+import os
+
 
 
 
@@ -10,17 +13,18 @@ class ECR:
         self.dto10 = driver
         self.connect_kkt = self.dto10.connect_to_kkt_by_usb()
         self.serial_number = self.dto10.get_serial_number()
-        self.fn_information = self.dto10.check_fn_information()
+        self.fn_information = self.dto10.get_fn_information()
         self.read_licenses = self.dto10.read_licenses()
         self.error = self.dto10.error_description()
-        self.status_fn = self.dto10.check_fn_fiscal_state()
-        self.model_name_information = self.dto10.check_model_kkt()
+        self.status_fn = self.dto10.get_fn_fiscal_state()
+        self.model_name_information = self.dto10.get_model_kkt()
         self.configuration_version = self.dto10.get_configuration()
         self.platform_v5 = self.configuration_version.startswith('5')
         self.platform_v2_5 = self.configuration_version.startswith('3')
 
 
-    def check_information_kkt(self):
+
+    def get_information_kkt(self):
 
         print(f'\n{constants.LINE_KKT_INFORM} Информация о ККТ {constants.LINE_KKT_INFORM}')
 
@@ -40,21 +44,25 @@ class ECR:
 
         print(f'{constants.LINE_KKT_LICENSE} Лицензии {constants.LINE_KKT_LICENSE}')
 
-        if self.read_licenses is not None:
-            print(*self.read_licenses, sep='\n')
-        else:
-            print(f"Нет введённых лицензий")
+        self.check_licenses()
 
         print(constants.LINES)
 
-    def open_json_file(self):
-        with open('./fiscal_information.json', 'r', encoding='utf-8') as file:
-            return json.load(file)
+
+    def check_licenses(self):
+        if self.read_licenses:
+            print(*self.read_licenses, sep='\n')
+        elif self.read_licenses is not None:
+            exit(f"Нет введённых лицензий")
+        else:
+            print(self.error)
 
 
+    #def check_write_licenses(self):
+        #json_work.open_file_licenses()
 
-    def check_platform(self):
-        # Если на ККТ платформа 2.5, то выполняется код ниже
+
+    def check_platform_v2_5(self):
         if self.platform_v2_5 == True:
             input('Переставьте джампер или переключатель boot в ON и нажмите ENTER для продолжения: ')
             if self.dto10.technological_reset():
@@ -66,16 +74,26 @@ class ECR:
             if self.dto10.reboot_device():
                 print(f'Перезагрузка ККТ: {self.error}')
                 raise Exception
-        # Если на ККТ платформа 5, то выполянется код ниже
-        elif self.platform_v5 == True:
+        exit(f'{self.error}')
+
+
+    def check_platform_v5(self):
+        if self.platform_v5 == True:
             print(f'\nПроизводим технологическое обнуление..')
             self.dto10.technological_reset()
         else:
             exit(f"Ошибка выполнения: {self.error}")
         print(f'\nКасса перезагружается..')
         self.dto10.reboot_device()
-        time.sleep(3)
+        time.sleep(constants.TIME_SLEEP)
         print(f'\nПерезагрузка ККТ: {self.error}')
+
+
+    def check_platform(self):
+        # Выполнение метода если платформа 2.5
+        self.check_platform_v2_5()
+        # Выполнение метода если платформа 5.0
+        self.check_platform_v5()
 
 
     def process_fiscalisation(self):
@@ -88,7 +106,7 @@ class ECR:
 
         if self.status_fn != configured_fn:
 
-            print("ФН фискализирован")
+            print("\nФН фискализирован")
 
             # Очистка ФН
             print(f'\nПроизводим очистку ФН, подождите...')
@@ -105,7 +123,7 @@ class ECR:
             # В зависимости от платформы производим действия
             self.check_platform()
 
-        print('ФН готов к аткивации')
+        print('\nФН готов к аткивации')
 
         # Проверяем записанные в ККТ лицензии, если лицензий нет выводим уведомление и заверашем работу
         if self.read_licenses is not None:
@@ -121,8 +139,9 @@ class ECR:
         except:
             exit(f"Ошибка при вычислении РНМ!")
         print(f"Регистрационный номер : {rnm}")
+
         # Записываем из json файла данные в переменную
-        file_json = self.open_json_file()
+        file_json = json_work.open_json_file()
         # Записываем данные inn and rnm в переменную с json данными
         file_json["organization"]["vatin"] = inn
         file_json["device"]["registrationNumber"] = rnm
@@ -132,4 +151,4 @@ class ECR:
                 json.dumps(file_json)) != self.dto10.fptr.LIBFPTR_OK:
             print(f"Ошибка : {self.error}")
             exit("Не удалось фискализировать ККТ!")
-        print("ККТ успешно фискализирована")
+        print("!!ККТ успешно фискализирована!!")

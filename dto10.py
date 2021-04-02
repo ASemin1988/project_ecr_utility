@@ -42,7 +42,13 @@ class DTO10:
         return id_licenses
 
 
-    def check_model_kkt(self):
+    def write_licenses(self, value, number=1):
+        self.fptr.setParam(IFptr.LIBFPTR_PARAM_LICENSE_NUMBER, number)
+        self.fptr.setParam(IFptr.LIBFPTR_PARAM_LICENSE, value)
+        self.fptr.writeLicense()
+
+
+    def get_model_kkt(self):
         self.fptr.setParam(IFptr.LIBFPTR_PARAM_DATA_TYPE, IFptr.LIBFPTR_DT_STATUS)
         self.fptr.queryData()
         return self.fptr.getParamString(IFptr.LIBFPTR_PARAM_MODEL_NAME)
@@ -81,7 +87,7 @@ class DTO10:
         self.fptr.report()
 
 
-    def check_fn_fiscal_state(self):
+    def get_fn_fiscal_state(self):
         self.fptr.setParam(IFptr.LIBFPTR_PARAM_FN_DATA_TYPE, IFptr.LIBFPTR_FNDT_FN_INFO)
         self.fptr.fnQueryData()
         return self.fptr.getParamInt(IFptr.LIBFPTR_PARAM_FN_STATE)
@@ -91,7 +97,7 @@ class DTO10:
         self.fptr.initMgm()
 
 
-    def check_fn_information(self):
+    def get_fn_information(self):
         self.fptr.setParam(IFptr.LIBFPTR_PARAM_FN_DATA_TYPE, IFptr.LIBFPTR_FNDT_FN_INFO)
         self.fptr.setParam(IFptr.LIBFPTR_FNDT_FN_INFO, IFptr.LIBFPTR_PARAM_SERIAL_NUMBER)
         self.fptr.fnQueryData()
