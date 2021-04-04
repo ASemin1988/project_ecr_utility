@@ -3,6 +3,7 @@ import argparse
 from dto10 import DTO10
 from libfptr10 import IFptr
 from ecr import ECR
+import work_json
 
 
 driver = DTO10()
@@ -12,6 +13,11 @@ kkt = ECR(driver)
 
 # Запрос общей информации о ККТ
 kkt.get_information_kkt()
+
+print(driver.get_model_information_kkt())
+
+
+print(work_json.check_json_licenses())
 
 
 # Добавил аргументы для запуска

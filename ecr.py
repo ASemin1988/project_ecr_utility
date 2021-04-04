@@ -1,7 +1,7 @@
 import constants
 import time
 import json
-import json_work
+import work_json
 import os
 
 
@@ -63,7 +63,7 @@ class ECR:
 
 
     def check_platform_v2_5(self):
-        if self.platform_v2_5 == True:
+        if self.platform_v2_5:
             input('Переставьте джампер или переключатель boot в ON и нажмите ENTER для продолжения: ')
             if self.dto10.technological_reset():
                 print(f'Технологическое обнуление: {self.error}')
@@ -78,7 +78,7 @@ class ECR:
 
 
     def check_platform_v5(self):
-        if self.platform_v5 == True:
+        if self.platform_v5:
             print(f'\nПроизводим технологическое обнуление..')
             self.dto10.technological_reset()
         else:
@@ -141,7 +141,7 @@ class ECR:
         print(f"Регистрационный номер : {rnm}")
 
         # Записываем из json файла данные в переменную
-        file_json = json_work.open_json_file()
+        file_json = work_json.open_json_file()
         # Записываем данные inn and rnm в переменную с json данными
         file_json["organization"]["vatin"] = inn
         file_json["device"]["registrationNumber"] = rnm

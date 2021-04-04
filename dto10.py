@@ -62,6 +62,12 @@ class DTO10:
         return self.fptr.errorCode()
 
 
+    def get_model_information_kkt(self):
+        self.fptr.setParam(IFptr.LIBFPTR_PARAM_DATA_TYPE, IFptr.LIBFPTR_DT_MODEL_INFO)
+        self.fptr.queryData()
+        return self.fptr.getParamString(IFptr.LIBFPTR_PARAM_MODEL)
+
+
     def get_serial_number(self):
         self.fptr.setParam(IFptr.LIBFPTR_PARAM_DATA_TYPE, IFptr.LIBFPTR_DT_STATUS)
         self.fptr.setParam(IFptr.LIBFPTR_DT_STATUS, IFptr.LIBFPTR_PARAM_SERIAL_NUMBER)
