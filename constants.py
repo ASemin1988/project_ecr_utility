@@ -1,7 +1,10 @@
-import json
-import os
-from pathlib import Path
 
-class Constants:
-        with open('fiscal_information.json') as json_file:
-            fiscal_inform = json.loads(json_file.read())
+
+LINE_KKT_INFORM = "-" * 30
+LINE_KKT_LICENSE = "-" * 34
+LINES = "-" * 78
+CONNECT_WAIT = 2
+CONNECT_TRIES = 0
+MAX_CONNECT_TRIES = 120
+TIME_SLEEP = 3
+

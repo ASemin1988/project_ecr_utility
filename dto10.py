@@ -1,50 +1,7 @@
 from libfptr10 import IFptr
+import config
 
 class DTO10:
-
-    JSON_FISCAL_INFORMATION = {
-        "type": "registration",
-        "operator": {
-            "name": "Кассир",
-            "vatin": "123654789507"
-        },
-        "organization": {
-            "name": "ПАО \"Test AAS\"",
-            "vatin": "",
-            "email": "test@atol.ru",
-            "taxationTypes": [
-                "osn"
-            ],
-            "address": "г. Москва ул. Бронницкая 112"
-        },
-        "reason": "fnChange",
-        "changeInfoReasons": [],
-        "device": {
-            "paymentsAddress": "Торговый зал",
-            "ffdVersion": "1.05",
-            "fnsUrl": "www.fns.ru",
-            "registrationNumber": "",
-            "internet": False,
-            "offlineMode": False,
-            "machineInstallation": False,
-            "bso": False,
-            "encryption": False,
-            "autoMode": False,
-            "machineNumber": "",
-            "service": False,
-            "gambling": False,
-            "lottery": False,
-            "excise": False,
-            "defaultTaxationType": "osn",
-            "ofdChannel": "proto"
-        },
-        "ofd": {
-            "name": "ООО Такском",
-            "vatin": "7704211201",
-            "host": "178.57.71.71",
-            "port": 7777
-        }
-    }
 
     def __init__(self):
         self.fptr = None
@@ -52,18 +9,7 @@ class DTO10:
 
 
     def create_driver(self):
-        self.fptr = IFptr('./fptr10.dll')
-
-
-
-    def check_platform_version_v2_5(self):
-        platform_v2_5 = self.get_configuration()
-        return platform_v2_5
-
-
-    def check_platform_version_v5(self):
-        platform_v5 = self.fptr.get_configuration()
-        return platform_v5
+        self.fptr = IFptr(config.path_dict_lib)
 
 
     def error_description(self):
@@ -96,12 +42,30 @@ class DTO10:
         return id_licenses
 
 
+    def write_licenses(self, value, number=1):
+        self.fptr.setParam(IFptr.LIBFPTR_PARAM_LICENSE_NUMBER, number)
+        self.fptr.setParam(IFptr.LIBFPTR_PARAM_LICENSE, value)
+        self.fptr.writeLicense()
+
+
+    def get_model_kkt(self):
+        self.fptr.setParam(IFptr.LIBFPTR_PARAM_DATA_TYPE, IFptr.LIBFPTR_DT_STATUS)
+        self.fptr.queryData()
+        return self.fptr.getParamString(IFptr.LIBFPTR_PARAM_MODEL_NAME)
+
+
     def connect_to_kkt_by_usb(self):
         self.fptr.setSingleSetting(IFptr.LIBFPTR_SETTING_MODEL, str(IFptr.LIBFPTR_MODEL_ATOL_AUTO))
         self.fptr.setSingleSetting(IFptr.LIBFPTR_SETTING_PORT, str(IFptr.LIBFPTR_PORT_USB))
         self.fptr.applySingleSettings()
         self.fptr.open()
         return self.fptr.errorCode()
+
+
+    def get_model_information_kkt(self):
+        self.fptr.setParam(IFptr.LIBFPTR_PARAM_DATA_TYPE, IFptr.LIBFPTR_DT_MODEL_INFO)
+        self.fptr.queryData()
+        return self.fptr.getParamString(IFptr.LIBFPTR_PARAM_MODEL)
 
 
     def get_serial_number(self):
@@ -129,7 +93,7 @@ class DTO10:
         self.fptr.report()
 
 
-    def fn_fiscal_state(self):
+    def get_fn_fiscal_state(self):
         self.fptr.setParam(IFptr.LIBFPTR_PARAM_FN_DATA_TYPE, IFptr.LIBFPTR_FNDT_FN_INFO)
         self.fptr.fnQueryData()
         return self.fptr.getParamInt(IFptr.LIBFPTR_PARAM_FN_STATE)
@@ -139,7 +103,7 @@ class DTO10:
         self.fptr.initMgm()
 
 
-    def fn_information(self):
+    def get_fn_information(self):
         self.fptr.setParam(IFptr.LIBFPTR_PARAM_FN_DATA_TYPE, IFptr.LIBFPTR_FNDT_FN_INFO)
         self.fptr.setParam(IFptr.LIBFPTR_FNDT_FN_INFO, IFptr.LIBFPTR_PARAM_SERIAL_NUMBER)
         self.fptr.fnQueryData()
