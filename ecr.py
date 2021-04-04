@@ -1,7 +1,7 @@
 import constants
 import time
 import json
-import work_json
+import json_work
 import os
 
 
@@ -57,9 +57,6 @@ class ECR:
         else:
             print(self.error)
 
-
-    #def check_write_licenses(self):
-        #json_work.open_file_licenses()
 
 
     def check_platform_v2_5(self):
@@ -141,7 +138,7 @@ class ECR:
         print(f"Регистрационный номер : {rnm}")
 
         # Записываем из json файла данные в переменную
-        file_json = work_json.open_json_file()
+        file_json = json_work.open_json_file()
         # Записываем данные inn and rnm в переменную с json данными
         file_json["organization"]["vatin"] = inn
         file_json["device"]["registrationNumber"] = rnm
