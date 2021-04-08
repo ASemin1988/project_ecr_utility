@@ -17,8 +17,10 @@ class ECR:
         self.status_fn = self.dto10.get_fn_fiscal_state()
         self.model_name_information = self.dto10.get_model_kkt()
         self.configuration_version = self.dto10.get_configuration()
+        self.get_firmware_version = self.configuration_version.startswith('8541')
         self.platform = self.get_platform()
         self.code_model_kkt = self.dto10.get_model_information_kkt()
+        self.logical_number_kkt = self.dto10.get_logical_number_kkt()
 
 
 
@@ -36,6 +38,8 @@ class ECR:
 
         if self.connect_kkt != self.dto10.fptr.LIBFPTR_OK:
             exit("Не удалось установить связь с ККТ!")
+
+        print(f'Номер ККТ: {self.logical_number_kkt}')
 
         print(f'Модель ККТ: {self.model_name_information}({self.code_model_kkt})')
 

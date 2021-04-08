@@ -26,7 +26,14 @@ def write_licenses():
         lic_list = data_dict['licensesPlatform50']
         for lic in lic_list:
             driver.write_licenses(value=lic['license'])
-    print(f'Лицензии записаны')
+        print(f'Лицензии записаны')
+
+    if kkt.platform == PLATFORM_V2_5 and kkt.get_firmware_version:
+        lic_list = data_dict['licensesPlatform25']
+        for lic in lic_list:
+            driver.write_licenses(value=lic['data'])
+        print(f'Лицензии записаны')
+
 
 
 def write_security_codes():
