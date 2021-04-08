@@ -48,6 +48,16 @@ def write_security_codes():
     print(f'Коды защиты записаны')
 
 
+def check_initialisation_kkt():
+    data_dict = json_work.open_json_file(
+        name=os.path.join(config.path_data_dict, '0' + driver.get_model_information_kkt(),
+                            driver.get_serial_number() + config.path_format_json))
+
+    for lic in data_dict:
+        driver.write_licenses(value=lic['serialNumber'], number=['macAddress'])
+    print(f'Инициализация ККТ')
+
+
 # Добавил аргументы для запуска
 parser = argparse.ArgumentParser()
 parser.add_argument("--fiscal", "-f", help="- Фискализация кассы", action="store_true")
@@ -75,8 +85,8 @@ if args.technical and driver.technological_reset() != IFptr.LIBFPTR_OK:
 
 
 # Инициализация устройства
-if args.initialization:
-    pass
+if args.initialization and driver.initialization_kkt() != IFptr.LIBFPTR_OK:
+    print(f'Инициализация ККТ: {kkt.dto10.error_description ()}')
 
 
 # Запись лицензий/кодов защиты в ККТ
