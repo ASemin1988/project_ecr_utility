@@ -9,7 +9,6 @@ import json_work
 from constants import PLATFORM_V5, PLATFORM_V2_5
 
 
-
 driver = DTO10()
 kkt = ECR(driver)
 
@@ -35,7 +34,6 @@ def write_licenses():
         print(f'Лицензии записаны')
 
 
-
 def write_security_codes():
     data_dict = json_work.open_json_file(
             name=os.path.join(config.path_data_dict, '0' + driver.get_model_information_kkt(),
@@ -51,7 +49,7 @@ def write_security_codes():
 def check_initialisation_kkt():
     data_dict = json_work.open_json_file(
         name=os.path.join(config.path_data_dict, '0' + driver.get_model_information_kkt(),
-                            driver.get_serial_number() + config.path_format_json))
+                                    driver.get_serial_number() + config.path_format_json))
 
     for lic in data_dict:
         driver.write_licenses(value=lic['serialNumber'], number=['macAddress'])

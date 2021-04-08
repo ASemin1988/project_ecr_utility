@@ -1,4 +1,3 @@
-
 LINE_KKT_INFORM = "-" * 30
 LINE_KKT_LICENSE = "-" * 34
 LINES = "-" * 78

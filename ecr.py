@@ -5,9 +5,7 @@ import json_work
 import config
 
 
-
 class ECR:
-
     def __init__(self, driver):
         self.dto10 = driver
         self.connect_kkt = self.dto10.connect_to_kkt_by_usb()
@@ -22,15 +20,11 @@ class ECR:
         self.code_model_kkt = self.dto10.get_model_information_kkt()
         self.logical_number_kkt = self.dto10.get_logical_number_kkt()
 
-
-
     def get_platform(self):
         if self.configuration_version.startswith('5'):
             return constants.PLATFORM_V5
         if self.configuration_version.startswith('3'):
             return constants.PLATFORM_V2_5
-
-
 
     def get_information_kkt(self):
 
@@ -58,8 +52,6 @@ class ECR:
 
         print(constants.LINES)
 
-
-
     def check_licenses(self):
         if self.read_licenses:
             print(*self.read_licenses, sep='\n')
@@ -67,8 +59,6 @@ class ECR:
             print(f"Нет введённых лицензий")
         else:
             print(self.dto10.error_description())
-
-
 
     def check_platform_v2_5(self):
         if self.platform == constants.PLATFORM_V2_5:
@@ -84,7 +74,6 @@ class ECR:
                 raise Exception
         exit(f'{self.dto10.error_description()}')
 
-
     def check_information_connect(self):
         constants.CONNECT_TRIES
         while self.connect_kkt != self.dto10.fptr.LIBFPTR_OK:
@@ -93,7 +82,6 @@ class ECR:
             print(f'Подключение к ККТ(попытка {constants.CONNECT_TRIES})')
             if constants.CONNECT_TRIES == constants.MAX_CONNECT_TRIES:
                 print(f'Ошибка очистки')
-
 
     def check_platform_v5(self):
         if self.platform == constants.PLATFORM_V5:
@@ -106,13 +94,11 @@ class ECR:
         time.sleep(constants.TIME_SLEEP)
         print(f'\nПерезагрузка ККТ: {self.dto10.error_description()}')
 
-
     def check_platform(self):
         # Выполнение метода если платформа 2.5
         self.check_platform_v2_5()
         # Выполнение метода если платформа 5.0
         self.check_platform_v5()
-
 
     def process_fiscalisation(self):
 

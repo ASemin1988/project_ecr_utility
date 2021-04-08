@@ -1,24 +1,20 @@
 from libfptr10 import IFptr
 import config
 
-class DTO10:
 
+class DTO10:
     def __init__(self):
         self.fptr = None
         self.create_driver()
 
-
     def create_driver(self):
         self.fptr = IFptr(config.path_dict_lib)
-
 
     def error_description(self):
         return self.fptr.errorDescription()
 
-
     def error_code(self):
         return self.fptr.errorCode()
-
 
     # Функция проверки лицензии в ККТ
     def read_licenses(self):
@@ -41,18 +37,15 @@ class DTO10:
         self.fptr.endReadRecords()
         return id_licenses
 
-
     def write_licenses(self, value, number=1):
         self.fptr.setParam(IFptr.LIBFPTR_PARAM_LICENSE_NUMBER, number)
         self.fptr.setParam(IFptr.LIBFPTR_PARAM_LICENSE, value)
         self.fptr.writeLicense()
 
-
     def get_model_kkt(self):
         self.fptr.setParam(IFptr.LIBFPTR_PARAM_DATA_TYPE, IFptr.LIBFPTR_DT_STATUS)
         self.fptr.queryData()
         return self.fptr.getParamString(IFptr.LIBFPTR_PARAM_MODEL_NAME)
-
 
     def connect_to_kkt_by_usb(self):
         self.fptr.setSingleSetting(IFptr.LIBFPTR_SETTING_MODEL, str(IFptr.LIBFPTR_MODEL_ATOL_AUTO))
@@ -61,18 +54,15 @@ class DTO10:
         self.fptr.open()
         return self.fptr.errorCode()
 
-
     def get_logical_number_kkt(self):
         self.fptr.setParam(IFptr.LIBFPTR_PARAM_DATA_TYPE, IFptr.LIBFPTR_DT_STATUS)
         self.fptr.queryData()
         return self.fptr.getParamInt(IFptr.LIBFPTR_PARAM_LOGICAL_NUMBER)
 
-
     def get_model_information_kkt(self):
         self.fptr.setParam(IFptr.LIBFPTR_PARAM_DATA_TYPE, IFptr.LIBFPTR_DT_MODEL_INFO)
         self.fptr.queryData()
         return self.fptr.getParamString(IFptr.LIBFPTR_PARAM_MODEL)
-
 
     def initialization_kkt(self, value, number):
         self.fptr.setParam(IFptr.LIBFPTR_PARAM_SERIAL_NUMBER, value)
@@ -85,34 +75,28 @@ class DTO10:
         self.fptr.queryData()
         return self.fptr.getParamString(IFptr.LIBFPTR_PARAM_SERIAL_NUMBER)
 
-
     def get_configuration(self):
         self.fptr.setParam(IFptr.LIBFPTR_PARAM_DATA_TYPE, IFptr.LIBFPTR_DT_UNIT_VERSION)
         self.fptr.setParam(IFptr.LIBFPTR_PARAM_UNIT_TYPE, IFptr.LIBFPTR_UT_CONFIGURATION)
         self.fptr.queryData()
         return self.fptr.getParamString(IFptr.LIBFPTR_PARAM_UNIT_VERSION)
 
-
     def process_json(self, json_job):
         self.fptr.setParam(IFptr.LIBFPTR_PARAM_JSON_DATA, json_job)
         self.fptr.processJson()
         return self.fptr.errorCode()
 
-
     def print_information_kkt(self):
         self.fptr.setParam(IFptr.LIBFPTR_PARAM_REPORT_TYPE, IFptr.LIBFPTR_RT_KKT_INFO)
         self.fptr.report()
-
 
     def get_fn_fiscal_state(self):
         self.fptr.setParam(IFptr.LIBFPTR_PARAM_FN_DATA_TYPE, IFptr.LIBFPTR_FNDT_FN_INFO)
         self.fptr.fnQueryData()
         return self.fptr.getParamInt(IFptr.LIBFPTR_PARAM_FN_STATE)
 
-
     def fn_clear(self):
         self.fptr.initMgm()
-
 
     def get_fn_information(self):
         self.fptr.setParam(IFptr.LIBFPTR_PARAM_FN_DATA_TYPE, IFptr.LIBFPTR_FNDT_FN_INFO)
@@ -120,10 +104,8 @@ class DTO10:
         self.fptr.fnQueryData()
         return self.fptr.getParamString(IFptr.LIBFPTR_PARAM_SERIAL_NUMBER)
 
-
     def technological_reset(self):
         self.fptr.resetSettings()
-
 
     def reboot_device(self):
         self.fptr.deviceReboot()
