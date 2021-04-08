@@ -77,7 +77,7 @@ class DTO10:
     def initialization_kkt(self, value, number):
         self.fptr.setParam(IFptr.LIBFPTR_PARAM_SERIAL_NUMBER, value)
         self.fptr.setParam(IFptr.LIBFPTR_PARAM_MAC_ADDRESS, number)
-
+        self.fptr.initDevice()
 
     def get_serial_number(self):
         self.fptr.setParam(IFptr.LIBFPTR_PARAM_DATA_TYPE, IFptr.LIBFPTR_DT_STATUS)
