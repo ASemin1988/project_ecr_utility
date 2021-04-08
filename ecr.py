@@ -2,8 +2,7 @@ import constants
 import time
 import json
 import json_work
-import os
-
+import config
 
 
 
@@ -15,12 +14,19 @@ class ECR:
         self.serial_number = self.dto10.get_serial_number()
         self.fn_information = self.dto10.get_fn_information()
         self.read_licenses = self.dto10.read_licenses()
-        self.error = self.dto10.error_description()
         self.status_fn = self.dto10.get_fn_fiscal_state()
         self.model_name_information = self.dto10.get_model_kkt()
         self.configuration_version = self.dto10.get_configuration()
-        self.platform_v5 = self.configuration_version.startswith('5')
-        self.platform_v2_5 = self.configuration_version.startswith('3')
+        self.platform = self.get_platform()
+        self.code_model_kkt = self.dto10.get_model_information_kkt()
+
+
+
+    def get_platform(self):
+        if self.configuration_version.startswith('5'):
+            return constants.PLATFORM_V5
+        if self.configuration_version.startswith('3'):
+            return constants.PLATFORM_V2_5
 
 
 
@@ -31,7 +37,7 @@ class ECR:
         if self.connect_kkt != self.dto10.fptr.LIBFPTR_OK:
             exit("Не удалось установить связь с ККТ!")
 
-        print(f'Наименование ККТ: {self.model_name_information}')
+        print(f'Модель ККТ: {self.model_name_information}({self.code_model_kkt})')
 
         print(f"Заводской номер ККТ: {self.serial_number}")
 
@@ -40,7 +46,7 @@ class ECR:
         if self.fn_information:
             print(f"Серийный номер ФН : {self.fn_information}")
         else:
-            print(f"Серийный номер ФН: {self.error}")
+            print(f"Серийный номер ФН: {self.dto10.error_description()}")
 
         print(f'{constants.LINE_KKT_LICENSE} Лицензии {constants.LINE_KKT_LICENSE}')
 
@@ -49,41 +55,52 @@ class ECR:
         print(constants.LINES)
 
 
+
     def check_licenses(self):
         if self.read_licenses:
             print(*self.read_licenses, sep='\n')
         elif self.read_licenses is not None:
-            exit(f"Нет введённых лицензий")
+            print(f"Нет введённых лицензий")
         else:
-            print(self.error)
+            print(self.dto10.error_description())
 
 
 
     def check_platform_v2_5(self):
-        if self.platform_v2_5:
+        if self.platform == constants.PLATFORM_V2_5:
             input('Переставьте джампер или переключатель boot в ON и нажмите ENTER для продолжения: ')
             if self.dto10.technological_reset():
-                print(f'Технологическое обнуление: {self.error}')
+                print(f'Технологическое обнуление: {self.dto10.error_description()}')
                 raise Exception
             elif self.connect_kkt != self.dto10.fptr.LIBFPTR_OK:
-                exit(f'{self.error}')
+                exit(f'{self.dto10.error_description()}')
             input('Переставьте джампер или переключатель boot в ON и нажмите ENTER для продолжения: ')
             if self.dto10.reboot_device():
-                print(f'Перезагрузка ККТ: {self.error}')
+                print(f'Перезагрузка ККТ: {self.dto10.error_description()}')
                 raise Exception
-        exit(f'{self.error}')
+        exit(f'{self.dto10.error_description()}')
+
+
+    def check_information_connect(self):
+        constants.CONNECT_TRIES
+        while self.connect_kkt != self.dto10.fptr.LIBFPTR_OK:
+            time.sleep(constants.CONNECT_WAIT)
+            constants.CONNECT_TRIES += 1
+            print(f'Подключение к ККТ(попытка {constants.CONNECT_TRIES})')
+            if constants.CONNECT_TRIES == constants.MAX_CONNECT_TRIES:
+                print(f'Ошибка очистки')
 
 
     def check_platform_v5(self):
-        if self.platform_v5:
+        if self.platform == constants.PLATFORM_V5:
             print(f'\nПроизводим технологическое обнуление..')
             self.dto10.technological_reset()
         else:
-            exit(f"Ошибка выполнения: {self.error}")
+            exit(f"Ошибка выполнения: {self.dto10.error_description()}")
         print(f'\nКасса перезагружается..')
         self.dto10.reboot_device()
         time.sleep(constants.TIME_SLEEP)
-        print(f'\nПерезагрузка ККТ: {self.error}')
+        print(f'\nПерезагрузка ККТ: {self.dto10.error_description()}')
 
 
     def check_platform(self):
@@ -102,20 +119,12 @@ class ECR:
         configured_fn = self.dto10.fptr.LIBFPTR_UT_CONFIGURATION
 
         if self.status_fn != configured_fn:
-
             print("\nФН фискализирован")
-
             # Очистка ФН
             print(f'\nПроизводим очистку ФН, подождите...')
             self.dto10.fn_clear()
-            constants.CONNECT_TRIES
-            while self.connect_kkt != self.dto10.fptr.LIBFPTR_OK:
-                time.sleep(constants.CONNECT_WAIT)
-                constants.CONNECT_TRIES += 1
-                print(f'Подклчюение к ККТ(попытка {constants.CONNECT_TRIES})')
-            if constants.CONNECT_TRIES == constants.MAX_CONNECT_TRIES:
-                print(f'Ошибка очистки')
-            print(f'\nЗавершение очистики ФН: {self.error}')
+            self.check_information_connect()
+            print(f'\nЗавершение очистики ФН: {self.dto10.error_description()}')
 
             # В зависимости от платформы производим действия
             self.check_platform()
@@ -138,7 +147,7 @@ class ECR:
         print(f"Регистрационный номер : {rnm}")
 
         # Записываем из json файла данные в переменную
-        file_json = json_work.open_json_file()
+        file_json = json_work.open_json_file(name=config.path_json_file)
         # Записываем данные inn and rnm в переменную с json данными
         file_json["organization"]["vatin"] = inn
         file_json["device"]["registrationNumber"] = rnm
@@ -146,6 +155,6 @@ class ECR:
         print("Производим фискализацию")
         if self.dto10.process_json(
                 json.dumps(file_json)) != self.dto10.fptr.LIBFPTR_OK:
-            print(f"Ошибка : {self.error}")
+            print(f"Ошибка : {self.dto10.error_description()}")
             exit("Не удалось фискализировать ККТ!")
         print("!!ККТ успешно фискализирована!!")
