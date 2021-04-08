@@ -62,6 +62,12 @@ class DTO10:
         return self.fptr.errorCode()
 
 
+    def get_logical_number_kkt(self):
+        self.fptr.setParam(IFptr.LIBFPTR_PARAM_DATA_TYPE, IFptr.LIBFPTR_DT_STATUS)
+        self.fptr.queryData()
+        return self.fptr.getParamInt(IFptr.LIBFPTR_PARAM_LOGICAL_NUMBER)
+
+
     def get_model_information_kkt(self):
         self.fptr.setParam(IFptr.LIBFPTR_PARAM_DATA_TYPE, IFptr.LIBFPTR_DT_MODEL_INFO)
         self.fptr.queryData()
