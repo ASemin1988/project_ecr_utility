@@ -3,6 +3,8 @@ import time
 import json
 import json_work
 import config
+import os
+
 
 
 class ECR:
@@ -52,6 +54,54 @@ class ECR:
 
         print(constants.LINES)
 
+    def write_licenses(self):
+        if self.read_licenses:
+            exit(f'Лицензии введены')
+        else:
+            path_dict = os.path.join(config.path_data_dict,
+                                     '0' + self.code_model_kkt,
+                                     self.serial_number + config.path_format_json)
+
+            data_dict = json_work.open_json_file(name=path_dict)
+
+            success_flag = True
+            if self.platform == constants.PLATFORM_V5 or self.platform == constants.PLATFORM_V2_5 and \
+                    self.get_firmware_version:
+                lic_list = []
+                if self.platform == constants.PLATFORM_V5:
+                    lic_list = data_dict['licensesPlatform50']
+
+                if self.platform == constants.PLATFORM_V2_5:
+                    lic_list = data_dict['licensesPlatform25']
+
+                for lic in lic_list:
+                    error = self.dto10.write_licenses(value=lic['license'])
+                    if error != self.dto10.fptr.LIBFPTR_OK:
+                        success_flag = False
+
+            elif self.platform == constants.PLATFORM_V2_5:
+                    codes_list = data_dict['protectionCodes']
+                    for codes in codes_list:
+                        error = self.dto10.write_licenses(value=codes['codeValue'], number=codes['codeNumber'])
+                        if error != self.dto10.fptr.LIBFPTR_OK:
+                            success_flag = False
+
+            return success_flag
+
+    def check_initialisation_kkt(self):
+        data_dict = json_work.open_json_file(
+            name=os.path.join(config.path_data_dict, '0' + self.code_model_kkt,
+                              self.serial_number + config.path_format_json))
+
+        success_tag = True
+        init_list = data_dict
+        error = self.dto10.initialization_kkt(serial_number=init_list['serialNumber'],
+                                              mac_address=init_list['macAddress'])
+        if error != self.dto10.fptr.LIBFPTR_OK:
+            success_tag = False
+        return success_tag
+
+
     def check_licenses(self):
         if self.read_licenses:
             print(*self.read_licenses, sep='\n')
@@ -72,10 +122,8 @@ class ECR:
             if self.dto10.reboot_device():
                 print(f'Перезагрузка ККТ: {self.dto10.error_description()}')
                 raise Exception
-        exit(f'{self.dto10.error_description()}')
 
     def check_information_connect(self):
-        constants.CONNECT_TRIES
         while self.connect_kkt != self.dto10.fptr.LIBFPTR_OK:
             time.sleep(constants.CONNECT_WAIT)
             constants.CONNECT_TRIES += 1
@@ -91,7 +139,7 @@ class ECR:
             exit(f"Ошибка выполнения: {self.dto10.error_description()}")
         print(f'\nКасса перезагружается..')
         self.dto10.reboot_device()
-        time.sleep(constants.TIME_SLEEP)
+        time.sleep(constants.CONNECT_WAIT)
         print(f'\nПерезагрузка ККТ: {self.dto10.error_description()}')
 
     def check_platform(self):
@@ -122,16 +170,29 @@ class ECR:
         print('\nФН готов к аткивации')
 
         # Проверяем записанные в ККТ лицензии, если лицензий нет выводим уведомление и заверашем работу
-        if self.read_licenses is not None:
+        if self.read_licenses:
             print(f"\nЛицензии введены", end='\n')
         else:
-            exit(f"Нет введённых лицензий")
+            exit("Нет введённых лицензий")
 
         # Процесс фискализации ФН
-        inn = input(f"\nВведите ИНН клиента : ")
+        while True:
+            inn = ""
+            try:
+                inn = int(input(f"\nВведите ИНН клиента : "))
+                if len(str(inn)) == constants.MIN_LENGTH_INN or len(str(inn)) == constants.MAX_LENGTH_INN:
+                    break
+                else:
+                    print('В ИНН количество цифр должно быть 10 или 12')
+                    continue
+            except ValueError:
+                print(f'Введите только цифры!')
+            else:
+                break
+
         rnm = ""
         try:
-            rnm = self.dto10.calc_rnm(full_serial_number=self.serial_number, inn_12=inn, rnm_number="1").ljust(20)
+            rnm = self.dto10.calc_rnm(full_serial_number=self.serial_number, inn_12=str(inn), rnm_number="1").ljust(20)
         except:
             exit(f"Ошибка при вычислении РНМ!")
         print(f"Регистрационный номер : {rnm}")
@@ -139,7 +200,7 @@ class ECR:
         # Записываем из json файла данные в переменную
         file_json = json_work.open_json_file(name=config.path_json_file)
         # Записываем данные inn and rnm в переменную с json данными
-        file_json["organization"]["vatin"] = inn
+        file_json["organization"]["vatin"] = str(inn)
         file_json["device"]["registrationNumber"] = rnm
 
         print("Производим фискализацию")
