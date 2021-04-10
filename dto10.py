@@ -1,7 +1,6 @@
 from libfptr10 import IFptr
 import config
 
-
 class DTO10:
     def __init__(self):
         self.fptr = None
@@ -41,6 +40,7 @@ class DTO10:
         self.fptr.setParam(IFptr.LIBFPTR_PARAM_LICENSE_NUMBER, number)
         self.fptr.setParam(IFptr.LIBFPTR_PARAM_LICENSE, value)
         self.fptr.writeLicense()
+        return self.fptr.errorCode()
 
     def get_model_kkt(self):
         self.fptr.setParam(IFptr.LIBFPTR_PARAM_DATA_TYPE, IFptr.LIBFPTR_DT_STATUS)
@@ -64,9 +64,9 @@ class DTO10:
         self.fptr.queryData()
         return self.fptr.getParamString(IFptr.LIBFPTR_PARAM_MODEL)
 
-    def initialization_kkt(self, value, number):
-        self.fptr.setParam(IFptr.LIBFPTR_PARAM_SERIAL_NUMBER, value)
-        self.fptr.setParam(IFptr.LIBFPTR_PARAM_MAC_ADDRESS, number)
+    def initialization_kkt(self, serial_number, mac_address):
+        self.fptr.setParam(IFptr.LIBFPTR_PARAM_SERIAL_NUMBER, serial_number)
+        self.fptr.setParam(IFptr.LIBFPTR_PARAM_MAC_ADDRESS, mac_address)
         self.fptr.initDevice()
 
     def get_serial_number(self):
