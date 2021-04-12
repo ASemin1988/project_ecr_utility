@@ -186,7 +186,13 @@ class ECR:
         if self.read_licenses:
             print(f"\nЛицензии введены", end='\n')
         else:
-            exit("Нет введённых лицензий")
+            print("\nНет введённых лицензий")
+            print("\nВыполянется процесс записи лицензии в кассу, подождите...")
+            while self.connect_kkt == self.dto10.fptr.LIBFPTR_ERROR_NO_CONNECTION:
+                print(self.dto10.error_description())
+            else:
+                self.write_licenses()
+                print("\nЛицензии успешно записаны")
 
         # Процесс фискализации ФН
         inn = self.checking_inn()
