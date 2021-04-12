@@ -101,7 +101,6 @@ class ECR:
             success_tag = False
         return success_tag
 
-
     def check_licenses(self):
         if self.read_licenses:
             print(*self.read_licenses, sep='\n')
@@ -109,6 +108,20 @@ class ECR:
             print(f"Нет введённых лицензий")
         else:
             print(self.dto10.error_description())
+
+    def checking_inn(self):
+        while True:
+            inn = ""
+            try:
+                inn = int(input(f"\nВведите ИНН клиента : "))
+                if len(str(inn)) == constants.MIN_LENGTH_INN or len(str(inn)) == constants.MAX_LENGTH_INN:
+                    return inn
+                    break
+                else:
+                    print('В ИНН количество цифр должно быть 10 или 12')
+                    continue
+            except ValueError:
+                print(f'Введите только цифры!')
 
     def check_platform_v2_5(self):
         if self.platform == constants.PLATFORM_V2_5:
@@ -176,23 +189,12 @@ class ECR:
             exit("Нет введённых лицензий")
 
         # Процесс фискализации ФН
-        while True:
-            inn = ""
-            try:
-                inn = int(input(f"\nВведите ИНН клиента : "))
-                if len(str(inn)) == constants.MIN_LENGTH_INN or len(str(inn)) == constants.MAX_LENGTH_INN:
-                    break
-                else:
-                    print('В ИНН количество цифр должно быть 10 или 12')
-                    continue
-            except ValueError:
-                print(f'Введите только цифры!')
-            else:
-                break
+        inn = self.checking_inn()
 
         rnm = ""
         try:
-            rnm = self.dto10.calc_rnm(full_serial_number=self.serial_number, inn_12=str(inn), rnm_number="1").ljust(20)
+            rnm = self.dto10.calc_rnm(full_serial_number=self.serial_number, inn_12=str(inn),
+                                      rnm_number="1").ljust(20)
         except:
             exit(f"Ошибка при вычислении РНМ!")
         print(f"Регистрационный номер : {rnm}")

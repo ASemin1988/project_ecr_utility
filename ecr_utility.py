@@ -41,7 +41,7 @@ if args.technical and driver.technological_reset() != IFptr.LIBFPTR_OK:
 
 # Инициализация устройства
 if args.initialization and kkt.check_initialisation_kkt() != IFptr.LIBFPTR_OK:
-    print(f'Инициализация ККТ: {driver.error_description ()}')
+    print(f'Инициализация ККТ: {driver.error_description()}')
 
 
 # Запись лицензий/кодов защиты в ККТ

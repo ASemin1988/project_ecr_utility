@@ -68,6 +68,7 @@ class DTO10:
         self.fptr.setParam(IFptr.LIBFPTR_PARAM_SERIAL_NUMBER, serial_number)
         self.fptr.setParam(IFptr.LIBFPTR_PARAM_MAC_ADDRESS, mac_address)
         self.fptr.initDevice()
+        return self.fptr.errorCode()
 
     def get_serial_number(self):
         self.fptr.setParam(IFptr.LIBFPTR_PARAM_DATA_TYPE, IFptr.LIBFPTR_DT_STATUS)
