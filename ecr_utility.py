@@ -25,10 +25,10 @@ parser.add_argument("--write_licenses", "-w", help="- Записать лице�
 parser.add_argument("--write_uin_keys", "-u", help="- Запись ключей и uin", action="store_true")
 args = parser.parse_args()
 
+
 # Печать информации
-if args.info:
-    if driver.print_information_kkt() != IFptr.LIBFPTR_OK:
-        print(f'Ошибка печати информации о ККТ: {kkt.dto10.error_description()}')
+if args.info and driver.print_information_kkt() != IFptr.LIBFPTR_OK:
+    print(f'Ошибка печати информации о ККТ: {kkt.dto10.error_description()}')
 
 # Перезагрузка кассы
 if args.reboot and driver.reboot_device() != IFptr.LIBFPTR_OK:
