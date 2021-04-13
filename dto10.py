@@ -1,6 +1,7 @@
 from libfptr10 import IFptr
 import config
 
+
 class DTO10:
     def __init__(self):
         self.fptr = None
@@ -85,6 +86,13 @@ class DTO10:
     def process_json(self, json_job):
         self.fptr.setParam(IFptr.LIBFPTR_PARAM_JSON_DATA, json_job)
         self.fptr.processJson()
+        return self.fptr.errorCode()
+
+    def enter_keys(self, byte_keys, uin, mac=""):
+        self.fptr.setParam(IFptr.LIBFPTR_PARAM_KEYS, byte_keys)
+        self.fptr.setParam(IFptr.LIBFPTR_PARAM_UIN, uin)
+        self.fptr.setParam(IFptr.LIBFPTR_PARAM_MAC_ADDRESS, mac)
+        self.fptr.enterKeys()
         return self.fptr.errorCode()
 
     def print_information_kkt(self):

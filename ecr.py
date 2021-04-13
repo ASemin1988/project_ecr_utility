@@ -4,6 +4,7 @@ import json
 import json_work
 import config
 import os
+import helper
 
 
 
@@ -17,7 +18,7 @@ class ECR:
         self.status_fn = self.dto10.get_fn_fiscal_state()
         self.model_name_information = self.dto10.get_model_kkt()
         self.configuration_version = self.dto10.get_configuration()
-        self.get_firmware_version = self.configuration_version.startswith('8541')
+        self.get_firmware_version = self.configuration_version.startswith(constants.VERSION_CONFIGURATION)
         self.platform = self.get_platform()
         self.code_model_kkt = self.dto10.get_model_information_kkt()
         self.logical_number_kkt = self.dto10.get_logical_number_kkt()
@@ -67,15 +68,15 @@ class ECR:
             success_flag = True
             if self.platform == constants.PLATFORM_V5 or self.platform == constants.PLATFORM_V2_5 and \
                     self.get_firmware_version:
-                lic_list = []
+                license_list = []
                 if self.platform == constants.PLATFORM_V5:
-                    lic_list = data_dict['licensesPlatform50']
+                    license_list = data_dict['licensesPlatform50']
 
                 if self.platform == constants.PLATFORM_V2_5:
-                    lic_list = data_dict['licensesPlatform25']
+                    license_list = data_dict['licensesPlatform25']
 
-                for lic in lic_list:
-                    error = self.dto10.write_licenses(value=lic['license'])
+                for license in license_list:
+                    error = self.dto10.write_licenses(value=license['license'])
                     if error != self.dto10.fptr.LIBFPTR_OK:
                         success_flag = False
 
@@ -94,9 +95,9 @@ class ECR:
                               self.serial_number + config.path_format_json))
 
         success_tag = True
-        init_list = data_dict
-        error = self.dto10.initialization_kkt(serial_number=init_list['serialNumber'],
-                                              mac_address=init_list['macAddress'])
+        list = data_dict
+        error = self.dto10.initialization_kkt(serial_number=list['serialNumber'],
+                                              mac_address=list['macAddress'])
         if error != self.dto10.fptr.LIBFPTR_OK:
             success_tag = False
         return success_tag
@@ -116,7 +117,6 @@ class ECR:
                 inn = int(input(f"\nВведите ИНН клиента : "))
                 if len(str(inn)) == constants.MIN_LENGTH_INN or len(str(inn)) == constants.MAX_LENGTH_INN:
                     return inn
-                    break
                 else:
                     print('В ИНН количество цифр должно быть 10 или 12')
                     continue
@@ -161,6 +161,27 @@ class ECR:
         # Выполнение метода если платформа 5.0
         self.check_platform_v5()
 
+    def enter_uin_and_keys(self, uin, public_key, private_key, signature, mac=""):
+        byte_keys = helper.string_to_byte(public_key)
+        byte_keys.extend(helper.string_to_byte(signature))
+        byte_keys.extend(helper.string_to_byte(private_key))
+        return self.dto10.enter_keys(byte_keys=byte_keys, uin=uin, mac=mac)
+
+    def enter_uin_from_file(self):
+        data_dict = json_work.open_json_file(
+            name=os.path.join(config.path_data_dict, '0' + self.code_model_kkt,
+                                self.serial_number + config.path_format_json))
+
+        success_tag = True
+        list_uin = data_dict
+        list_keys = data_dict['keysPlatform50']
+        error = self.enter_uin_from_file(uin=list_uin['UIN'],
+                                          public_key=['public'], private_key=list_keys['private'],
+                                          signature=['signature'])
+        if error != self.dto10.fptr.LIBFPTR_OK:
+            success_tag = False
+        return success_tag
+
     def process_fiscalisation(self):
 
         # Получаем состояние ФН
@@ -182,17 +203,15 @@ class ECR:
 
         print('\nФН готов к аткивации')
 
-        # Проверяем записанные в ККТ лицензии, если лицензий нет выводим уведомление и заверашем работу
+        # Проверяем записанные в ККТ лицензии, если лицензий нет выводим уведомление и записываем лицензии
         if self.read_licenses:
             print(f"\nЛицензии введены", end='\n')
         else:
             print("\nНет введённых лицензий")
             print("\nВыполянется процесс записи лицензии в кассу, подождите...")
-            while self.connect_kkt == self.dto10.fptr.LIBFPTR_ERROR_NO_CONNECTION:
-                print(self.dto10.error_description())
-            else:
-                self.write_licenses()
-                print("\nЛицензии успешно записаны")
+            time.sleep(constants.CONNECT_WAIT)
+            self.write_licenses()
+            print("\nЛицензии успешно записаны")
 
         # Процесс фискализации ФН
         inn = self.checking_inn()
@@ -217,3 +236,4 @@ class ECR:
             print(f"Ошибка : {self.dto10.error_description()}")
             exit("Не удалось фискализировать ККТ!")
         print("!!ККТ успешно фискализирована!!")
+
