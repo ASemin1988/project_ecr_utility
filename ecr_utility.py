@@ -17,14 +17,19 @@ kkt.get_information_kkt()
 # Добавил аргументы для запуска
 parser = argparse.ArgumentParser()
 parser.add_argument("--fiscal", "-f", help="- Фискализация кассы", action="store_true")
+parser.add_argument("--base_config", "-b", help="- Базовая настройка кассы", action="store_true")
+parser.add_argument("--clear_fn", "-c", help="- Инициализация ФНа", action="store_true")
 parser.add_argument("--info", "-i", help="- Печать информации о ККТ", action="store_true")
 parser.add_argument("--technical", "-t", help="- Технологическое обнуление", action="store_true")
 parser.add_argument("--reboot", "-r", help="- Перезагрузка кассы", action="store_true")
 parser.add_argument("--initialization", "-in", help="- Инициализация ККТ", action="store_true")
 parser.add_argument("--write_licenses", "-w", help="- Записать лицензии/коды защиты  в ККТ", action="store_true")
-parser.add_argument("--write_uin_keys", "-u", help="- Запись ключей и uin", action="store_true")
+parser.add_argument("--write_uin_keys", "-k", help="- Запись ключей и uin", action="store_true")
 args = parser.parse_args()
 
+# Инициализация ФНа
+if args.clear_fn and kkt.clear_fn_kkt() != IFptr.LIBFPTR_OK:
+    print(f'\nОчистка ФНа завершена: {driver.error_description()}')
 
 # Печать информации
 if args.info and driver.print_information_kkt() != IFptr.LIBFPTR_OK:
@@ -48,6 +53,10 @@ if args.write_licenses and kkt.write_licenses():
 
 # Процесс фискализации кассы
 if args.fiscal and kkt.process_fiscalisation() != IFptr.LIBFPTR_OK:
+    print(driver.error_description())
+
+# Базовая настройка кассы
+if args.base_config and kkt.base_config_kkt() != IFptr.LIBFPTR_OK:
     print(driver.error_description())
 
 # Запись ключей и uin в ккт

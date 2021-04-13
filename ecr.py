@@ -175,15 +175,21 @@ class ECR:
         success_tag = True
         list_uin = data_dict
         list_keys = data_dict['keysPlatform50']
-        error = self.enter_uin_from_file(uin=list_uin['UIN'],
+        error = self.enter_uin_and_keys(uin=list_uin['UIN'],
                                           public_key=['public'], private_key=list_keys['private'],
                                           signature=['signature'])
         if error != self.dto10.fptr.LIBFPTR_OK:
             success_tag = False
         return success_tag
 
-    def process_fiscalisation(self):
+    def clear_fn_kkt(self):
+        print(f'\nПроизводим очистку ФН, подождите...')
+        self.dto10.fn_clear()
+        self.check_information_connect()
 
+    def base_config_kkt(self):
+
+        self.enter_uin_from_file()
         # Получаем состояние ФН
         self.status_fn
 
@@ -192,11 +198,9 @@ class ECR:
 
         if self.status_fn != configured_fn:
             print("\nФН фискализирован")
+
             # Очистка ФН
-            print(f'\nПроизводим очистку ФН, подождите...')
-            self.dto10.fn_clear()
-            self.check_information_connect()
-            print(f'\nЗавершение очистики ФН: {self.dto10.error_description()}')
+            self.clear_fn_kkt()
 
             # В зависимости от платформы производим действия
             self.check_platform()
@@ -212,6 +216,49 @@ class ECR:
             time.sleep(constants.CONNECT_WAIT)
             self.write_licenses()
             print("\nЛицензии успешно записаны")
+
+        # Процесс фискализации ФН
+        inn = self.checking_inn()
+
+        rnm = ""
+        try:
+            rnm = self.dto10.calc_rnm(full_serial_number=self.serial_number, inn_12=str(inn),
+                                      rnm_number="1").ljust(20)
+        except:
+            exit(f"Ошибка при вычислении РНМ!")
+        print(f"Регистрационный номер : {rnm}")
+
+        # Записываем из json файла данные в переменную
+        file_json = json_work.open_json_file(name=config.path_json_file)
+        # Записываем данные inn and rnm в переменную с json данными
+        file_json["organization"]["vatin"] = str(inn)
+        file_json["device"]["registrationNumber"] = rnm
+
+        print("Производим фискализацию")
+        if self.dto10.process_json(
+                json.dumps(file_json)) != self.dto10.fptr.LIBFPTR_OK:
+            print(f"Ошибка : {self.dto10.error_description()}")
+            exit("Не удалось фискализировать ККТ!")
+        print("!!ККТ успешно фискализирована!!")
+
+    def process_fiscalisation(self):
+
+        # Получаем состояние ФН
+        self.status_fn
+
+        # Получаем статус ФН готов к активации
+        configured_fn = self.dto10.fptr.LIBFPTR_UT_CONFIGURATION
+
+        if self.status_fn != configured_fn:
+            exit("\nФН фискализирован")
+        else:
+            print('\nФН готов к аткивации')
+
+        # Проверяем записанные в ККТ лицензии, если лицензий нет выводим уведомление и записываем лицензии
+        if self.read_licenses:
+            print(f"\nЛицензии введены", end='\n')
+        else:
+            exit("\nНет введённых лицензий")
 
         # Процесс фискализации ФН
         inn = self.checking_inn()
