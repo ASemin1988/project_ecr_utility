@@ -47,13 +47,21 @@ class ECR:
         if self.fn_information:
             print(f"Серийный номер ФН : {self.fn_information}")
         else:
-            print(f"Серийный номер ФН: {self.dto10.error_description()}")
+            print(f"Серийный номер ФН: {self.dto10.fptr.errorDescription()}")
 
         print(f'{constants.LINE_KKT_LICENSE} Лицензии {constants.LINE_KKT_LICENSE}')
 
         self.check_licenses()
 
         print(constants.LINES)
+
+    def print_info_kkt(self):
+        if self.dto10.print_information_kkt() == self.dto10.fptr.LIBFPTR_OK:
+            print('Печать информации о ККТ выполнена успешно')
+            return True
+        else:
+            print(f'Ошибка печати информации о ккт: {self.dto10.fptr.errorDescription()}')
+            return False
 
     def write_licenses(self):
         if self.read_licenses:
@@ -125,11 +133,10 @@ class ECR:
 
     def reboot_device_kkt(self):
         if self.dto10.reboot_device() == self.dto10.fptr.LIBFPTR_OK:
-            time.sleep(constants.CONNECT_WAIT)
             print('Перезагрузка кассы выполнена успешно')
             return True
         else:
-            print(f'Ошибка во время перезагрузки кассы: {self.dto10.error_description()}')
+            print(f'Ошибка во время перезагрузки кассы: {self.dto10.fptr.errorDescription()}')
             return False
 
     def technical_reset_kkt(self):
@@ -137,7 +144,7 @@ class ECR:
             print('Технологическое обнуление выполнено успешно')
             return True
         else:
-            exit(f"Ошибка выполнения: {self.dto10.error_description()}")
+            exit(f"Ошибка выполнения: {self.dto10.fptr.errorDescription()}")
             return False
 
     def check_platform_v2_5(self):

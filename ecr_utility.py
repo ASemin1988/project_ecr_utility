@@ -32,8 +32,8 @@ if args.clear_fn:
     kkt.clear_fn_kkt()
 
 # Печать информации
-if args.info and driver.print_information_kkt() != IFptr.LIBFPTR_OK:
-    print(f'Ошибка печати информации о ККТ: {kkt.dto10.error_description()}')
+if args.info:
+    kkt.print_info_kkt()
 
 # Перезагрузка кассы
 if args.reboot:
@@ -48,7 +48,7 @@ if args.initialization and kkt.check_initialisation_kkt() != IFptr.LIBFPTR_OK:
     print(f'Инициализация ККТ: {driver.error_description()}')
 
 # Запись лицензий/кодов защиты в ККТ
-if args.write_licenses and kkt.write_licenses():
+if args.write_licenses and kkt.write_licenses() != IFptr.LIBFPTR_OK:
     print(f'Запись лицензий: {driver.error_description()}')
 
 # Процесс фискализации кассы

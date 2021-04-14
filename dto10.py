@@ -98,6 +98,7 @@ class DTO10:
     def print_information_kkt(self):
         self.fptr.setParam(IFptr.LIBFPTR_PARAM_REPORT_TYPE, IFptr.LIBFPTR_RT_KKT_INFO)
         self.fptr.report()
+        return self.fptr.errorCode()
 
     def get_fn_fiscal_state(self):
         self.fptr.setParam(IFptr.LIBFPTR_PARAM_FN_DATA_TYPE, IFptr.LIBFPTR_FNDT_FN_INFO)
