@@ -125,6 +125,7 @@ class ECR:
 
     def reboot_device_kkt(self):
         if self.dto10.reboot_device() == self.dto10.fptr.LIBFPTR_OK:
+            time.sleep(constants.CONNECT_WAIT)
             print('Перезагрузка кассы выполнена успешно')
             return True
         else:

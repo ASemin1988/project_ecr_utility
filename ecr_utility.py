@@ -3,7 +3,7 @@ import argparse
 from dto10 import DTO10
 from libfptr10 import IFptr
 from ecr import ECR
-import helper
+
 
 
 
@@ -37,7 +37,7 @@ if args.info and driver.print_information_kkt() != IFptr.LIBFPTR_OK:
 
 # Перезагрузка кассы
 if args.reboot:
-    driver.reboot_device()
+    kkt.reboot_device_kkt()
 
 # Технологическое обнуление кассы
 if args.technical:
