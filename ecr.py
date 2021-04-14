@@ -87,6 +87,11 @@ class ECR:
                     error = self.dto10.write_licenses(value=license['license'])
                     if error != self.dto10.fptr.LIBFPTR_OK:
                         success_flag = False
+                if error == self.dto10.fptr.LIBFPTR_OK:
+                    print('Лицензии успешно записаны в кассу')
+                    return True
+                else:
+                    print(f'Ошибка записи лицензий:{self.dto10.fptr.errorDescription()}')
 
             elif self.platform == constants.PLATFORM_V2_5:
                     codes_list = data_dict['protectionCodes']
@@ -94,7 +99,11 @@ class ECR:
                         error = self.dto10.write_licenses(value=codes['codeValue'], number=codes['codeNumber'])
                         if error != self.dto10.fptr.LIBFPTR_OK:
                             success_flag = False
-
+                    if error == self.dto10.fptr.LIBFPTR_OK:
+                        print('Коды защиты успешно записаны в кассу')
+                        return True
+                    else:
+                        print(f'Ошибка записи кодов защиты:{self.dto10.fptr.errorDescription ()}')
             return success_flag
 
     def check_initialisation_kkt(self):
@@ -102,13 +111,14 @@ class ECR:
             name=os.path.join(config.path_data_dict, '0' + self.code_model_kkt,
                               self.serial_number + config.path_format_json))
 
-        success_tag = True
         list = data_dict
         error = self.dto10.initialization_kkt(serial_number=list['serialNumber'],
                                               mac_address=list['macAddress'])
-        if error != self.dto10.fptr.LIBFPTR_OK:
-            success_tag = False
-        return success_tag
+        if error == self.dto10.fptr.LIBFPTR_OK:
+            print('\nИнициализация кассы выполнена успешно')
+            return True
+        else:
+            print(f'Ошибка инициализации кассы: {self.dto10.error_description()}')
 
     def check_licenses(self):
         if self.read_licenses:
@@ -133,7 +143,7 @@ class ECR:
 
     def reboot_device_kkt(self):
         if self.dto10.reboot_device() == self.dto10.fptr.LIBFPTR_OK:
-            print('Перезагрузка кассы выполнена успешно')
+            print('\nПерезагрузка кассы выполнена успешно')
             return True
         else:
             print(f'Ошибка во время перезагрузки кассы: {self.dto10.fptr.errorDescription()}')
@@ -141,7 +151,7 @@ class ECR:
 
     def technical_reset_kkt(self):
         if self.dto10.technological_reset() == self.dto10.fptr.LIBFPTR_OK:
-            print('Технологическое обнуление выполнено успешно')
+            print('\nТехнологическое обнуление выполнено успешно')
             return True
         else:
             exit(f"Ошибка выполнения: {self.dto10.fptr.errorDescription()}")
@@ -195,7 +205,7 @@ class ECR:
                                         private_key=list_keys['private'],
                                         signature=list_keys['signature'])
         if error == self.dto10.fptr.LIBFPTR_OK:
-            print('Ключи введены успешно')
+            print('\nКлючи введены успешно')
             return True
         else:
             print(f'Ошибка ввода ключей: {self.dto10.fptr.errorDescription()}')
@@ -204,7 +214,7 @@ class ECR:
     def clear_fn_kkt(self):
         print(f'\nПроизводим очистку ФН, подождите...')
         if self.dto10.fn_clear() == self.dto10.fptr.LIBFPTR_OK:
-            print('Инициализация ФН выполнена успешно')
+            print('\nИнициализация ФН выполнена успешно')
             return True
         else:
             print(f'Ошибка инициализации ФН: {self.dto10.fptr.errorDescription()}')
@@ -260,10 +270,12 @@ class ECR:
 
         print("Производим фискализацию")
         if self.dto10.process_json(
-                json.dumps(file_json)) != self.dto10.fptr.LIBFPTR_OK:
-            print(f"Ошибка : {self.dto10.error_description()}")
+                json.dumps(file_json)) == self.dto10.fptr.LIBFPTR_OK:
+            print(f"!!ККТ успешно фискализирована!! : {self.dto10.fptr.errorDescription ()}")
+            return True
+        else:
             exit("Не удалось фискализировать ККТ!")
-        print("!!ККТ успешно фискализирована!!")
+            return False
 
     def process_fiscalisation(self):
 
@@ -303,8 +315,10 @@ class ECR:
 
         print("Производим фискализацию")
         if self.dto10.process_json(
-                json.dumps(file_json)) != self.dto10.fptr.LIBFPTR_OK:
-            print(f"Ошибка : {self.dto10.error_description()}")
+                json.dumps(file_json)) == self.dto10.fptr.LIBFPTR_OK:
+            print(f"!!ККТ успешно фискализирована!! : {self.dto10.fptr.errorDescription()}")
+            return True
+        else:
             exit("Не удалось фискализировать ККТ!")
-        print("!!ККТ успешно фискализирована!!")
+            return False
 

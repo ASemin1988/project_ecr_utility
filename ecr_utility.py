@@ -1,7 +1,6 @@
 # python 3.9
 import argparse
 from dto10 import DTO10
-from libfptr10 import IFptr
 from ecr import ECR
 
 
@@ -41,23 +40,23 @@ if args.reboot:
 
 # Технологическое обнуление кассы
 if args.technical:
-    driver.technological_reset()
+    kkt.technical_reset_kkt()
 
 # Инициализация устройства
-if args.initialization and kkt.check_initialisation_kkt() != IFptr.LIBFPTR_OK:
-    print(f'Инициализация ККТ: {driver.error_description()}')
+if args.initialization:
+    kkt.check_initialisation_kkt()
 
 # Запись лицензий/кодов защиты в ККТ
-if args.write_licenses and kkt.write_licenses() != IFptr.LIBFPTR_OK:
-    print(f'Запись лицензий: {driver.error_description()}')
+if args.write_licenses:
+    kkt.write_licenses()
 
 # Процесс фискализации кассы
-if args.fiscal and kkt.process_fiscalisation() != IFptr.LIBFPTR_OK:
-    print(driver.error_description())
+if args.fiscal:
+    kkt.process_fiscalisation()
 
 # Базовая настройка кассы
-if args.base_config and kkt.base_config_kkt() != IFptr.LIBFPTR_OK:
-    print(driver.error_description())
+if args.base_config:
+    kkt.base_config_kkt()
 
 # Запись ключей и uin в ккт
 if args.write_uin_keys:
