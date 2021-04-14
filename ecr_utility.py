@@ -16,7 +16,7 @@ kkt.get_information_kkt()
 # Добавил аргументы для запуска
 parser = argparse.ArgumentParser()
 parser.add_argument("--fiscal", "-f", help="- Фискализация кассы", action="store_true")
-parser.add_argument("--base_config", "-b", help="- Базовая настройка кассы", action="store_true")
+parser.add_argument("--full_base_config", "-b", help="- Полная базовая настройка кассы", action="store_true")
 parser.add_argument("--clear_fn", "-c", help="- Инициализация ФНа", action="store_true")
 parser.add_argument("--info", "-i", help="- Печать информации о ККТ", action="store_true")
 parser.add_argument("--technical", "-t", help="- Технологическое обнуление", action="store_true")
@@ -54,9 +54,9 @@ if args.write_licenses:
 if args.fiscal:
     kkt.process_fiscalisation()
 
-# Базовая настройка кассы
+# Полная базовая настройка кассы
 if args.base_config:
-    kkt.base_config_kkt()
+    kkt.full_base_config_kkt()
 
 # Запись ключей и uin в ккт
 if args.write_uin_keys:

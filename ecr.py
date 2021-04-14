@@ -23,12 +23,14 @@ class ECR:
         self.code_model_kkt = self.dto10.get_model_information_kkt()
         self.logical_number_kkt = self.dto10.get_logical_number_kkt()
 
+    # Функция определения платформы кассы
     def get_platform(self):
         if self.configuration_version.startswith('5'):
             return constants.PLATFORM_V5
         if self.configuration_version.startswith('3'):
             return constants.PLATFORM_V2_5
 
+    # Функция вывода информации о кассе
     def get_information_kkt(self):
 
         print(f'\n{constants.LINE_KKT_INFORM} Информация о ККТ {constants.LINE_KKT_INFORM}')
@@ -55,6 +57,7 @@ class ECR:
 
         print(constants.LINES)
 
+    # Функция печати информации о кассе
     def print_info_kkt(self):
         if self.dto10.print_information_kkt() == self.dto10.fptr.LIBFPTR_OK:
             print('Печать информации о ККТ выполнена успешно')
@@ -63,6 +66,16 @@ class ECR:
             print(f'Ошибка печати информации о ккт: {self.dto10.fptr.errorDescription()}')
             return False
 
+    # Функция попыток подключения к кассе
+    def check_information_connect(self):
+        while self.connect_kkt != self.dto10.fptr.LIBFPTR_OK:
+            time.sleep(constants.CONNECT_WAIT)
+            constants.CONNECT_TRIES += 1
+            print(f'Подключение к ККТ(попытка {constants.CONNECT_TRIES})')
+            if constants.CONNECT_TRIES == constants.MAX_CONNECT_TRIES:
+                print(f'Ошибка очистки')
+
+    # Функция записи лицензий и кодов защиты в кассу
     def write_licenses(self):
         if self.read_licenses:
             exit(f'Лицензии введены')
@@ -106,6 +119,7 @@ class ECR:
                         print(f'Ошибка записи кодов защиты:{self.dto10.fptr.errorDescription ()}')
             return success_flag
 
+    # Функция инициализации кассы
     def check_initialisation_kkt(self):
         data_dict = json_work.open_json_file(
             name=os.path.join(config.path_data_dict, '0' + self.code_model_kkt,
@@ -120,6 +134,7 @@ class ECR:
         else:
             print(f'Ошибка инициализации кассы: {self.dto10.error_description()}')
 
+    # Функция проверки лицензий в ККТ
     def check_licenses(self):
         if self.read_licenses:
             print(*self.read_licenses, sep='\n')
@@ -128,6 +143,7 @@ class ECR:
         else:
             print(self.dto10.error_description())
 
+    # Функция проверки при вводе ИНН
     def checking_inn(self):
         while True:
             inn = ""
@@ -141,6 +157,7 @@ class ECR:
             except ValueError:
                 print(f'Введите только цифры!')
 
+    # Функция перезагрузки кассы
     def reboot_device_kkt(self):
         if self.dto10.reboot_device() == self.dto10.fptr.LIBFPTR_OK:
             print('\nПерезагрузка кассы выполнена успешно')
@@ -149,6 +166,7 @@ class ECR:
             print(f'Ошибка во время перезагрузки кассы: {self.dto10.fptr.errorDescription()}')
             return False
 
+    # Функция технологического обнуления кассы
     def technical_reset_kkt(self):
         if self.dto10.technological_reset() == self.dto10.fptr.LIBFPTR_OK:
             print('\nТехнологическое обнуление выполнено успешно')
@@ -157,6 +175,7 @@ class ECR:
             exit(f"Ошибка выполнения: {self.dto10.fptr.errorDescription()}")
             return False
 
+    # Функция техобнуления и перезагрузки для 2.5
     def check_platform_v2_5(self):
         input('Переставьте джампер или переключатель boot в ON и нажмите ENTER для продолжения: ')
         self.technical_reset_kkt()
@@ -164,14 +183,7 @@ class ECR:
         print(f'\nКасса перезагружается..')
         self.reboot_device_kkt()
 
-    def check_information_connect(self):
-        while self.connect_kkt != self.dto10.fptr.LIBFPTR_OK:
-            time.sleep(constants.CONNECT_WAIT)
-            constants.CONNECT_TRIES += 1
-            print(f'Подключение к ККТ(попытка {constants.CONNECT_TRIES})')
-            if constants.CONNECT_TRIES == constants.MAX_CONNECT_TRIES:
-                print(f'Ошибка очистки')
-
+    # Функция техобнуления и перезагрузки для п5
     def check_platform_v5(self):
         print(f'\nПроизводим технологическое обнуление..')
         self.technical_reset_kkt()
@@ -179,6 +191,7 @@ class ECR:
         self.reboot_device_kkt()
         time.sleep(constants.CONNECT_WAIT)
 
+    # Функция выбора платформы кассы
     def check_platform(self):
         # Выполнение метода если платформа 2.5
         if self.platform == constants.PLATFORM_V2_5:
@@ -196,7 +209,7 @@ class ECR:
     def enter_uin_from_file(self):
         data_dict = json_work.open_json_file(
             name=os.path.join(config.path_data_dict, '0' + self.code_model_kkt,
-                                self.serial_number + config.path_format_json))
+                              self.serial_number + config.path_format_json))
 
         list_uin = data_dict
         list_keys = data_dict['keysPlatform50']
@@ -211,6 +224,7 @@ class ECR:
             print(f'Ошибка ввода ключей: {self.dto10.fptr.errorDescription()}')
             return False
 
+    # Функция инициализации(очистки) ФНа
     def clear_fn_kkt(self):
         print(f'\nПроизводим очистку ФН, подождите...')
         if self.dto10.fn_clear() == self.dto10.fptr.LIBFPTR_OK:
@@ -220,7 +234,8 @@ class ECR:
             print(f'Ошибка инициализации ФН: {self.dto10.fptr.errorDescription()}')
         self.check_information_connect()
 
-    def base_config_kkt(self):
+    # Полная базовая настройка кассы
+    def full_base_config_kkt(self):
 
         # Получаем состояние ФН
         self.status_fn
@@ -249,6 +264,7 @@ class ECR:
             self.write_licenses()
             print("\nЛицензии успешно записаны")
 
+        # Производим запись ключей и uin
         self.enter_uin_from_file()
 
         # Процесс фискализации ФН
@@ -277,6 +293,7 @@ class ECR:
             exit("Не удалось фискализировать ККТ!")
             return False
 
+    # Функция фискализации кассы
     def process_fiscalisation(self):
 
         # Получаем состояние ФН
