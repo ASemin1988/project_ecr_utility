@@ -123,18 +123,28 @@ class ECR:
             except ValueError:
                 print(f'Введите только цифры!')
 
+    def reboot_device_kkt(self):
+        if self.dto10.reboot_device() == self.dto10.fptr.LIBFPTR_OK:
+            print('Перезагрузка кассы выполнена успешно')
+            return True
+        else:
+            print(f'Ошибка во время перезагрузки кассы: {self.dto10.error_description()}')
+            return False
+
+    def technical_reset_kkt(self):
+        if self.dto10.technological_reset() == self.dto10.fptr.LIBFPTR_OK:
+            print('Технологическое обнуление выполнено успешно')
+            return True
+        else:
+            exit(f"Ошибка выполнения: {self.dto10.error_description()}")
+            return False
+
     def check_platform_v2_5(self):
-        if self.platform == constants.PLATFORM_V2_5:
-            input('Переставьте джампер или переключатель boot в ON и нажмите ENTER для продолжения: ')
-            if self.dto10.technological_reset():
-                print(f'Технологическое обнуление: {self.dto10.error_description()}')
-                raise Exception
-            elif self.connect_kkt != self.dto10.fptr.LIBFPTR_OK:
-                exit(f'{self.dto10.error_description()}')
-            input('Переставьте джампер или переключатель boot в ON и нажмите ENTER для продолжения: ')
-            if self.dto10.reboot_device():
-                print(f'Перезагрузка ККТ: {self.dto10.error_description()}')
-                raise Exception
+        input('Переставьте джампер или переключатель boot в ON и нажмите ENTER для продолжения: ')
+        self.technical_reset_kkt()
+        input('Переставьте джампер или переключатель boot в OFF и нажмите ENTER для продолжения: ')
+        print(f'\nКасса перезагружается..')
+        self.reboot_device_kkt()
 
     def check_information_connect(self):
         while self.connect_kkt != self.dto10.fptr.LIBFPTR_OK:
@@ -145,21 +155,19 @@ class ECR:
                 print(f'Ошибка очистки')
 
     def check_platform_v5(self):
-        if self.platform == constants.PLATFORM_V5:
-            print(f'\nПроизводим технологическое обнуление..')
-            self.dto10.technological_reset()
-        else:
-            exit(f"Ошибка выполнения: {self.dto10.error_description()}")
+        print(f'\nПроизводим технологическое обнуление..')
+        self.technical_reset_kkt()
         print(f'\nКасса перезагружается..')
-        self.dto10.reboot_device()
+        self.reboot_device_kkt()
         time.sleep(constants.CONNECT_WAIT)
-        print(f'\nПерезагрузка ККТ: {self.dto10.error_description()}')
 
     def check_platform(self):
         # Выполнение метода если платформа 2.5
-        self.check_platform_v2_5()
+        if self.platform == constants.PLATFORM_V2_5:
+            self.check_platform_v2_5()
         # Выполнение метода если платформа 5.0
-        self.check_platform_v5()
+        if self.platform == constants.PLATFORM_V5:
+            self.check_platform_v5()
 
     def enter_uin_and_keys(self, uin, public_key, private_key, signature, mac=""):
         byte_keys = helper.string_to_byte(public_key)
@@ -172,24 +180,30 @@ class ECR:
             name=os.path.join(config.path_data_dict, '0' + self.code_model_kkt,
                                 self.serial_number + config.path_format_json))
 
-        success_tag = True
         list_uin = data_dict
         list_keys = data_dict['keysPlatform50']
         error = self.enter_uin_and_keys(uin=list_uin['UIN'],
-                                          public_key=['public'], private_key=list_keys['private'],
-                                          signature=['signature'])
-        if error != self.dto10.fptr.LIBFPTR_OK:
-            success_tag = False
-        return success_tag
+                                        public_key=list_keys['public'],
+                                        private_key=list_keys['private'],
+                                        signature=list_keys['signature'])
+        if error == self.dto10.fptr.LIBFPTR_OK:
+            print('Ключи введены успешно')
+            return True
+        else:
+            print(f'Ошибка ввода ключей: {self.dto10.fptr.errorDescription()}')
+            return False
 
     def clear_fn_kkt(self):
         print(f'\nПроизводим очистку ФН, подождите...')
-        self.dto10.fn_clear()
+        if self.dto10.fn_clear() == self.dto10.fptr.LIBFPTR_OK:
+            print('Инициализация ФН выполнена успешно')
+            return True
+        else:
+            print(f'Ошибка инициализации ФН: {self.dto10.fptr.errorDescription()}')
         self.check_information_connect()
 
     def base_config_kkt(self):
 
-        self.enter_uin_from_file()
         # Получаем состояние ФН
         self.status_fn
 
@@ -216,6 +230,8 @@ class ECR:
             time.sleep(constants.CONNECT_WAIT)
             self.write_licenses()
             print("\nЛицензии успешно записаны")
+
+        self.enter_uin_from_file()
 
         # Процесс фискализации ФН
         inn = self.checking_inn()

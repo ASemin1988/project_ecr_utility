@@ -28,20 +28,20 @@ parser.add_argument("--write_uin_keys", "-k", help="- Запись ключей 
 args = parser.parse_args()
 
 # Инициализация ФНа
-if args.clear_fn and kkt.clear_fn_kkt() != IFptr.LIBFPTR_OK:
-    print(f'\nОчистка ФНа завершена: {driver.error_description()}')
+if args.clear_fn:
+    kkt.clear_fn_kkt()
 
 # Печать информации
 if args.info and driver.print_information_kkt() != IFptr.LIBFPTR_OK:
     print(f'Ошибка печати информации о ККТ: {kkt.dto10.error_description()}')
 
 # Перезагрузка кассы
-if args.reboot and driver.reboot_device() != IFptr.LIBFPTR_OK:
-    print(f'Перезагрузка ККТ: {driver.error_description()}')
+if args.reboot:
+    driver.reboot_device()
 
 # Технологическое обнуление кассы
-if args.technical and driver.technological_reset() != IFptr.LIBFPTR_OK:
-    print(f'Ошибка технологического обнуления: {driver.error_description()}')
+if args.technical:
+    driver.technological_reset()
 
 # Инициализация устройства
 if args.initialization and kkt.check_initialisation_kkt() != IFptr.LIBFPTR_OK:
@@ -49,7 +49,7 @@ if args.initialization and kkt.check_initialisation_kkt() != IFptr.LIBFPTR_OK:
 
 # Запись лицензий/кодов защиты в ККТ
 if args.write_licenses and kkt.write_licenses():
-    print(driver.error_description())
+    print(f'Запись лицензий: {driver.error_description()}')
 
 # Процесс фискализации кассы
 if args.fiscal and kkt.process_fiscalisation() != IFptr.LIBFPTR_OK:
@@ -60,5 +60,5 @@ if args.base_config and kkt.base_config_kkt() != IFptr.LIBFPTR_OK:
     print(driver.error_description())
 
 # Запись ключей и uin в ккт
-if args.write_uin_keys and kkt.enter_uin_from_file != IFptr.LIBFPTR_OK:
-    print(driver.error_description())
+if args.write_uin_keys:
+    kkt.enter_uin_from_file()

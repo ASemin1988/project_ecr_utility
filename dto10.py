@@ -106,6 +106,7 @@ class DTO10:
 
     def fn_clear(self):
         self.fptr.initMgm()
+        return self.fptr.errorCode()
 
     def get_fn_information(self):
         self.fptr.setParam(IFptr.LIBFPTR_PARAM_FN_DATA_TYPE, IFptr.LIBFPTR_FNDT_FN_INFO)
@@ -115,9 +116,11 @@ class DTO10:
 
     def technological_reset(self):
         self.fptr.resetSettings()
+        return self.fptr.errorCode()
 
     def reboot_device(self):
         self.fptr.deviceReboot()
+        return self.fptr.errorCode()
 
     def calc_rnm(self, full_serial_number, inn_12, rnm_number):
         def crc16_ccitt(buf):
