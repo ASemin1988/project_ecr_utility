@@ -49,7 +49,7 @@ class ECR:
         if self.fn_information:
             print(f"Серийный номер ФН : {self.fn_information}")
         else:
-            print(f"Серийный номер ФН: {self.dto10.fptr.errorDescription()}")
+            print(f"Серийный номер ФН: {self.dto10.error_description()}")
 
         print(f'{constants.LINE_KKT_LICENSE} Лицензии {constants.LINE_KKT_LICENSE}')
 
@@ -63,7 +63,7 @@ class ECR:
             print('Печать информации о ККТ выполнена успешно')
             return True
         else:
-            print(f'Ошибка печати информации о ккт: {self.dto10.fptr.errorDescription()}')
+            print(f'Ошибка печати информации о ккт: {self.dto10.error_description()}')
             return False
 
     # Функция попыток подключения к кассе
@@ -104,7 +104,7 @@ class ECR:
                     print('Лицензии успешно записаны в кассу')
                     return True
                 else:
-                    print(f'Ошибка записи лицензий:{self.dto10.fptr.errorDescription()}')
+                    print(f'Ошибка записи лицензий:{self.dto10.error_description()}')
 
             elif self.platform == constants.PLATFORM_V2_5:
                     codes_list = data_dict['protectionCodes']
@@ -116,7 +116,7 @@ class ECR:
                         print('Коды защиты успешно записаны в кассу')
                         return True
                     else:
-                        print(f'Ошибка записи кодов защиты:{self.dto10.fptr.errorDescription ()}')
+                        print(f'Ошибка записи кодов защиты:{self.dto10.error_description()}')
             return success_flag
 
     # Функция инициализации кассы
@@ -125,9 +125,8 @@ class ECR:
             name=os.path.join(config.path_data_dict, '0' + self.code_model_kkt,
                               self.serial_number + config.path_format_json))
 
-        list = data_dict
-        error = self.dto10.initialization_kkt(serial_number=list['serialNumber'],
-                                              mac_address=list['macAddress'])
+        error = self.dto10.initialization_kkt(serial_number=data_dict['serialNumber'],
+                                              mac_address=data_dict['macAddress'])
         if error == self.dto10.fptr.LIBFPTR_OK:
             print('\nИнициализация кассы выполнена успешно')
             return True
@@ -149,7 +148,9 @@ class ECR:
             inn = ""
             try:
                 inn = int(input(f"\nВведите ИНН клиента : "))
-                if len(str(inn)) == constants.MIN_LENGTH_INN or len(str(inn)) == constants.MAX_LENGTH_INN:
+                min_len_inn = len(str(inn)) == constants.MIN_LENGTH_INN
+                max_len_inn = len(str(inn)) == constants.MAX_LENGTH_INN
+                if min_len_inn or max_len_inn:
                     return inn
                 else:
                     print('В ИНН количество цифр должно быть 10 или 12')
@@ -163,7 +164,7 @@ class ECR:
             print('\nПерезагрузка кассы выполнена успешно')
             return True
         else:
-            print(f'Ошибка во время перезагрузки кассы: {self.dto10.fptr.errorDescription()}')
+            print(f'Ошибка во время перезагрузки кассы: {self.dto10.error_description()}')
             return False
 
     # Функция технологического обнуления кассы
@@ -172,7 +173,7 @@ class ECR:
             print('\nТехнологическое обнуление выполнено успешно')
             return True
         else:
-            exit(f"Ошибка выполнения: {self.dto10.fptr.errorDescription()}")
+            exit(f"Ошибка выполнения: {self.dto10.error_description()}")
             return False
 
     # Функция техобнуления и перезагрузки для 2.5
@@ -211,17 +212,17 @@ class ECR:
             name=os.path.join(config.path_data_dict, '0' + self.code_model_kkt,
                               self.serial_number + config.path_format_json))
 
-        list_uin = data_dict
-        list_keys = data_dict['keysPlatform50']
-        error = self.enter_uin_and_keys(uin=list_uin['UIN'],
-                                        public_key=list_keys['public'],
-                                        private_key=list_keys['private'],
-                                        signature=list_keys['signature'])
+        uin = data_dict
+        keys_platform = data_dict['keysPlatform50']
+        error = self.enter_uin_and_keys(uin=uin['UIN'],
+                                        public_key=keys_platform['public'],
+                                        private_key=keys_platform['private'],
+                                        signature=keys_platform['signature'])
         if error == self.dto10.fptr.LIBFPTR_OK:
             print('\nКлючи введены успешно')
             return True
         else:
-            print(f'Ошибка ввода ключей: {self.dto10.fptr.errorDescription()}')
+            print(f'Ошибка ввода ключей: {self.dto10.error_description()}')
             return False
 
     # Функция инициализации(очистки) ФНа
@@ -231,12 +232,11 @@ class ECR:
             print('\nИнициализация ФН выполнена успешно')
             return True
         else:
-            print(f'Ошибка инициализации ФН: {self.dto10.fptr.errorDescription()}')
+            print(f'Ошибка инициализации ФН: {self.dto10.error_description()}')
         self.check_information_connect()
 
     # Полная базовая настройка кассы
     def full_base_config_kkt(self):
-
         # Получаем состояние ФН
         self.status_fn
 
@@ -287,7 +287,7 @@ class ECR:
         print("Производим фискализацию")
         if self.dto10.process_json(
                 json.dumps(file_json)) == self.dto10.fptr.LIBFPTR_OK:
-            print(f"!!ККТ успешно фискализирована!! : {self.dto10.fptr.errorDescription ()}")
+            print(f"!!ККТ успешно фискализирована!! : {self.dto10.error_description()}")
             return True
         else:
             exit("Не удалось фискализировать ККТ!")
@@ -333,7 +333,7 @@ class ECR:
         print("Производим фискализацию")
         if self.dto10.process_json(
                 json.dumps(file_json)) == self.dto10.fptr.LIBFPTR_OK:
-            print(f"!!ККТ успешно фискализирована!! : {self.dto10.fptr.errorDescription()}")
+            print(f"!!ККТ успешно фискализирована!! : {self.dto10.error_description()}")
             return True
         else:
             exit("Не удалось фискализировать ККТ!")
