@@ -76,7 +76,6 @@ class ECR:
             time.sleep(constants.TIME_SLEEP)
             return True
         else:
-            tries_connect == max_tries
             print(f'Ошибка подключения к кассе: {self.dto10.fptr.errorCode()}')
             return False
 
@@ -248,8 +247,6 @@ class ECR:
 
     def full_base_config_kkt(self):
         """Производим полную настройку кассы"""
-        # Получаем состояние ФН
-        self.status_fn
         # Получаем статус ФН готов к активации
         configured_fn = self.dto10.fptr.LIBFPTR_UT_CONFIGURATION
         if self.status_fn != configured_fn:
@@ -294,8 +291,6 @@ class ECR:
 
     def process_fiscalisation(self):
         """Производим только фискализацию(регистрацию) кассы"""
-        # Получаем состояние ФН
-        self.status_fn
         # Получаем статус ФН готов к активации
         configured_fn = self.dto10.fptr.LIBFPTR_UT_CONFIGURATION
         if self.status_fn != configured_fn:
