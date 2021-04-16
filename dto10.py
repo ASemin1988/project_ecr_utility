@@ -1,6 +1,7 @@
 from libfptr10 import IFptr
 import config
 
+
 class DTO10:
     def __init__(self):
         self.fptr = None
@@ -9,10 +10,8 @@ class DTO10:
     def create_driver(self):
         self.fptr = IFptr(config.path_dict_lib)
 
-    def error_description(self):
-        return self.fptr.errorDescription()
-
-    def error_code(self):
+    def connection_kkt(self):
+        self.fptr.open()
         return self.fptr.errorCode()
 
     # Функция проверки лицензии в ККТ
@@ -68,6 +67,7 @@ class DTO10:
         self.fptr.setParam(IFptr.LIBFPTR_PARAM_SERIAL_NUMBER, serial_number)
         self.fptr.setParam(IFptr.LIBFPTR_PARAM_MAC_ADDRESS, mac_address)
         self.fptr.initDevice()
+        return self.fptr.errorCode()
 
     def get_serial_number(self):
         self.fptr.setParam(IFptr.LIBFPTR_PARAM_DATA_TYPE, IFptr.LIBFPTR_DT_STATUS)
@@ -86,9 +86,17 @@ class DTO10:
         self.fptr.processJson()
         return self.fptr.errorCode()
 
+    def enter_keys(self, byte_keys, uin, mac=""):
+        self.fptr.setParam(IFptr.LIBFPTR_PARAM_KEYS, byte_keys)
+        self.fptr.setParam(IFptr.LIBFPTR_PARAM_UIN, uin)
+        self.fptr.setParam(IFptr.LIBFPTR_PARAM_MAC_ADDRESS, mac)
+        self.fptr.enterKeys()
+        return self.fptr.errorCode()
+
     def print_information_kkt(self):
         self.fptr.setParam(IFptr.LIBFPTR_PARAM_REPORT_TYPE, IFptr.LIBFPTR_RT_KKT_INFO)
         self.fptr.report()
+        return self.fptr.errorCode()
 
     def get_fn_fiscal_state(self):
         self.fptr.setParam(IFptr.LIBFPTR_PARAM_FN_DATA_TYPE, IFptr.LIBFPTR_FNDT_FN_INFO)
@@ -97,6 +105,7 @@ class DTO10:
 
     def fn_clear(self):
         self.fptr.initMgm()
+        return self.fptr.errorCode()
 
     def get_fn_information(self):
         self.fptr.setParam(IFptr.LIBFPTR_PARAM_FN_DATA_TYPE, IFptr.LIBFPTR_FNDT_FN_INFO)
@@ -106,9 +115,11 @@ class DTO10:
 
     def technological_reset(self):
         self.fptr.resetSettings()
+        return self.fptr.errorCode()
 
     def reboot_device(self):
         self.fptr.deviceReboot()
+        return self.fptr.errorCode()
 
     def calc_rnm(self, full_serial_number, inn_12, rnm_number):
         def crc16_ccitt(buf):
