@@ -2,8 +2,7 @@
 import argparse
 from dto10 import DTO10
 from ecr import ECR
-from tkinter import *
-
+import gui_utility
 
 
 
@@ -25,6 +24,7 @@ parser.add_argument("--reboot", "-r", help="- Перезагрузка касс�
 parser.add_argument("--initialization", "-in", help="- Инициализация ККТ", action="store_true")
 parser.add_argument("--write_licenses", "-w", help="- Записать лицензии/коды защиты  в ККТ", action="store_true")
 parser.add_argument("--write_uin_keys", "-k", help="- Запись ключей и uin", action="store_true")
+parser.add_argument("--gui", "-g", help="- Запуск графического интерфейса", action="store_true")
 args = parser.parse_args()
 
 # Инициализация ФНа
@@ -37,7 +37,7 @@ if args.print_info:
 
 # Перезагрузка кассы
 if args.reboot:
-    kkt.reboot_device_kkt()
+    kkt.reboot_kkt()
 
 # Технологическое обнуление кассы
 if args.technical:
@@ -62,3 +62,7 @@ if args.full_base_config:
 # Запись ключей и uin в ккт
 if args.write_uin_keys:
     kkt.enter_uin_from_file()
+
+# Запуск графического интерфейса
+if args.gui:
+   gui_utility.gui_app(name=kkt)

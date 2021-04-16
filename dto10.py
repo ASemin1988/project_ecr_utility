@@ -10,10 +10,8 @@ class DTO10:
     def create_driver(self):
         self.fptr = IFptr(config.path_dict_lib)
 
-    def error_description(self):
-        return self.fptr.errorDescription()
-
-    def error_code(self):
+    def connection_kkt(self):
+        self.fptr.open()
         return self.fptr.errorCode()
 
     # Функция проверки лицензии в ККТ

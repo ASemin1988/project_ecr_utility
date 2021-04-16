@@ -7,16 +7,15 @@ class Hex:
     # StrHexSpace:      '40 41 32'
     # List:             [0x40, 0x41, 0x32]
     # Bytes (Symbols):  '@A2'
-
     Array = []
 
     def clear(self):
         self.Array = []
 
-    def setHexData(self, data, bytes=None):
-        self.Array = self.__HexData__(data, bytes)
+    def set_hex_data(self, data, bytes=None):
+        self.Array = self.hex_data(data, bytes)
 
-    def __HexData__(self, data, bytes):
+    def hex_data(self, data, bytes):
         Result = []
         if type(data) == list:
             Result = data
@@ -46,6 +45,6 @@ class Hex:
 def string_to_byte(_string):
     buf = Hex()
     buf.clear()
-    buf.setHexData(_string)
+    buf.set_hex_data(_string)
     byte_array = buf.toList()
     return byte_array
